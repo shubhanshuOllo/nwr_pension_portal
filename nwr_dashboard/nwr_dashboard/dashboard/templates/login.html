@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NWR Pension Portal - Login</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        body {
+            display: flex;
+            min-height: 100vh;
+            background: #f5f5f5;
+        }
+
+        .container {
+            display: flex;
+            width: 100%;
+        }
+
+        .left-section {
+            flex: 1;
+            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('train.jpg');
+            background-size: cover;
+            background-position: center;
+            color: white;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+
+        .left-section h1 {
+            font-size: 2.5rem;
+            margin-top: 20px;
+        }
+
+        .right-section {
+            flex: 1;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: white;
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+        }
+
+        .form-container {
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #333;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .password-container {
+            position: relative;
+        }
+
+        .password-container input {
+            padding-right: 40px;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #666;
+        }
+
+        .forgot-password {
+            text-align: right;
+            margin-top: -15px;
+            margin-bottom: 20px;
+        }
+
+        .forgot-password a {
+            color: #4C6FFF;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #4C6FFF;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #3955CC;
+        }
+
+        .signup-link {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .signup-link a {
+            color: #4C6FFF;
+            text-decoration: none;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .left-section {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="left-section">
+            <h1>NWR<br>Pension Portal</h1>
+        </div>
+        <div class="right-section">
+            <img src="railway-logo.png" alt="Railway Logo" class="logo">
+            <div class="form-container">
+                <h2>Log in to your Account</h2>
+                <p class="subtitle">Today is a new day. It's your day. You shape it.<br>Sign in to start managing your projects.</p>
+                
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <div class="password-container">
+                            <input type="password" id="password" name="password" required>
+                            <span class="password-toggle" onclick="togglePassword()">👁️</span>
+                        </div>
+                    </div>
+
+                    {% comment %} <div class="forgot-password">
+                        <a href="#">Forget Password?</a>
+                    </div> {% endcomment %}
+
+                    <button type="submit">Log In</button>
+                </form>
+
+                {% comment %} <p class="signup-link">
+                    Don't have an account? <a href="signup.html">Sign up</a>
+                </p> {% endcomment %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            passwordInput.type = passwordInput.type === 'password' ? 'text' : 'password';
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+        
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+        
+            const response = await fetch('/authentication/login/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken(), // Ensure CSRF protection
+                },
+                body: JSON.stringify({ email, password }),
+            });
+        
+            const data = await response.json();
+        
+            if (response.ok) {
+                alert('Login successful!');
+                window.location.href = data.redirect;  // Redirect to the correct dashboard URL
+            } else {
+                alert(data.error || 'Invalid login credentials.');
+            }
+        });
+        
+        // Function to retrieve CSRF token from cookies
+        function getCSRFToken() {
+            const name = 'csrftoken=';
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                while (cookie.charAt(0) == ' ') cookie = cookie.substring(1);
+                if (cookie.indexOf(name) == 0) return cookie.substring(name.length, cookie.length);
+            }
+            return '';
+        }
+    </script>
+</body>
+</html> 

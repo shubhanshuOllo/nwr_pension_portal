@@ -1,0 +1,1920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NWR Pension Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        :root {
+            --primary-color: #6B5EFF;
+            --secondary-color: #2c3e50;
+            --background-color: #f5f6fa;
+            --card-background: #ffffff;
+        }
+
+        body {
+            background-color: var(--background-color);
+        }
+
+        /* Navbar styles */
+        .navbar {
+            background-color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-section img {
+            width: 40px;
+            height: 40px;
+        }
+
+        .logo-section h1 {
+            font-size: 1.5rem;
+            font-weight: 500;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .nav-button {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 400;
+        }
+
+        /* Main content layout */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 460px 485px;
+            gap: 1.5rem;  /* Restore the gap */
+            padding: 2rem;
+        }
+
+        /* Card styles */
+        .card {
+            background-color: var(--card-background);
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            margin: 0;  /* Remove the margin we added */
+        }
+
+        /* Remove the border styles */
+        .card:not(:last-child)::after {
+            display: none;  /* Remove the borders */
+        }
+
+        /* Chart container */
+        .chart-container {
+            width: 100%;
+            height: 250px;  /* Adjusted height to accommodate both charts */
+            margin: 1rem 0;
+            position: relative;
+        }
+
+        canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        /* Dropdown styles */
+        .dropdown {
+            padding: 0.65rem 1rem;  /* Adjusted padding to match button */
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            width: 140px;  /* Fixed width to match design */
+            font-size: 0.9rem;
+            color: #666;
+            background-color: white;
+            cursor: pointer;
+            outline: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23666' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: calc(100% - 12px) center;
+            padding-right: 35px;
+        }
+
+        .dropdown:hover {
+            border-color: var(--primary-color);
+        }
+
+        /* Chatbot styles */
+        .chatbot {
+            background-color: var(--card-background);
+            border-radius: 10px;
+            height: calc(100vh - 120px);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .chat-header {
+            padding: 1.2rem;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-header h2 {
+            font-size: 1.2rem;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .chat-actions {
+            display: flex;
+            gap: 0.8rem;
+        }
+
+        .icon-button {
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: background-color 0.3s;
+        }
+
+        .icon-button:hover {
+            background-color: #f5f5f5;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 1.2rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            background-color: #f8f9fa;
+        }
+
+        .message {
+            padding: 1rem;
+            border-radius: 10px;
+            max-width: 85%;
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
+        .bot-message {
+            background-color: white;
+            color: #333;
+            margin-right: auto;
+            border: 1px solid #eee;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .user-message {
+            background-color: var(--primary-color);
+            color: white;
+            margin-left: auto;
+        }
+
+        .message p {
+            margin: 0;
+            line-height: 1.5;
+            margin-bottom: 1rem;
+            font-weight: 400;
+        }
+
+        .message-time {
+            font-size: 0.8rem;
+            color: #999;
+            position: absolute;
+            right: 1rem;
+            bottom: 0.3rem;
+        }
+
+        .chat-input {
+            padding: 1rem;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 0.8rem;
+            align-items: center;
+        }
+
+        .input-wrapper {
+            flex: 1;
+            position: relative;
+            display: flex;
+            align-items: center;
+            background-color: #f5f6fa;
+            border-radius: 8px;
+            padding: 0.3rem 0.8rem;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 0.8rem 0;
+            border: none;
+            background: none;
+            outline: none;
+            font-size: 0.9rem;
+            color: #333;
+            font-weight: 400;
+        }
+
+        .chat-input input::placeholder {
+            color: #999;
+            font-weight: 300;
+        }
+
+        .emoji-button {
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            padding: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .emoji-button:hover {
+            color: var(--primary-color);
+        }
+
+        .send-button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .send-button i {
+            font-size: 0.9rem;
+        }
+
+        .send-button:hover {
+            background-color: #5649FF;
+            transform: translateY(-1px);
+        }
+
+        /* Stats section */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .stat-card {
+            background-color: var(--card-background);
+            padding: 1rem;
+            border-radius: 8px;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        /* Upload button */
+        .upload-button {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.65rem 1rem;  /* Match dropdown padding */
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: background-color 0.3s;
+            white-space: nowrap;  /* Prevent text wrapping */
+            min-width: 180px;  /* Fixed minimum width */
+        }
+
+        .upload-button i {
+            font-size: 0.9rem;  /* Match icon size with text */
+        }
+
+        .upload-button:hover {
+            background-color: #5649FF;
+        }
+
+        /* Add container for date and upload section */
+        .date-upload-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;  /* Consistent spacing */
+            margin-bottom: 1.5rem;
+        }
+
+        /* Responsive styles */
+        @media screen and (max-width: 1400px) {
+            .main-content {
+                grid-template-columns: 1fr 300px 500px;
+            }
+        }
+
+        @media screen and (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: 1fr 250px 400px;
+            }
+        }
+
+        @media screen and (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .chatbot {
+                grid-column: span 2;
+            }
+
+            .card::after {
+                display: none;  /* Remove borders on smaller screens */
+            }
+        }
+
+        @media screen and (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                padding: 1rem;
+                gap: 1rem;
+            }
+
+            .chatbot {
+                grid-column: span 1;
+            }
+
+            .navbar {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .nav-buttons {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .nav-button {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .logo-section {
+                flex-direction: column;
+            }
+
+            .chart-container {
+                height: 200px;  /* Smaller height for mobile */
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .date-upload-container {
+                flex-direction: column;
+                gap: 0.8rem;
+            }
+
+            .dropdown, 
+            .upload-button {
+                width: 100%;
+                max-width: none;
+            }
+        }
+
+        /* Additional responsive improvements */
+        @media screen and (max-width: 480px) {
+            .card {
+                padding: 1rem;
+            }
+
+            .upload-button {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .dropdown {
+                width: 100%;
+            }
+
+            .chat-input {
+                flex-direction: column;
+            }
+
+            .chat-input input {
+                width: 100%;
+            }
+
+            .send-button {
+                width: 100%;
+            }
+
+            .message {
+                max-width: 90%;
+            }
+        }
+
+        /* Update these styles for the middle column */
+        .middle-column {
+            padding: 1rem;
+            background-color: #f8f9fa;
+        }
+
+        .expandable-section {
+            background-color: #fff;
+            border: 1px solid #eee;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .dot.linked {
+            background-color: #6B5EFF;
+        }
+
+        .dot.unlinked {
+            background-color: #36A2EB;
+        }
+
+        .section-header {
+            padding: 1.2rem 1.5rem;
+            background-color: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 1px solid transparent;
+        }
+
+        .section-header h2 {
+            font-size: 1rem;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .section-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.3s ease-out;
+            opacity: 0;
+            background-color: #fff;
+            
+            
+        }
+
+        .expandable-section.active .section-content {
+            max-height: 300px;
+            opacity: 1;
+            padding: 6px 26px;
+            margin-bottom: 26px;
+                max-height: fit-content !important;
+        }
+
+        .expandable-section.active .section-header {
+            border-bottom: 1px solid #eee;
+        }
+
+        .content-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.8rem 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .content-row:not(:last-child) {
+            border-bottom: 1px solid #f0f0f0;
+            padding-bottom: 0.8rem;
+        }
+
+        .content-row:last-child {
+            padding-bottom: 0;
+        }
+
+        .content-row span {
+            margin: 0;
+        }
+
+        .content-row span:first-child {
+            color: #666;
+            font-weight: 400;
+        }
+
+        .amount, .percentage, .cases {
+            font-weight: 500;
+            min-width: 80px;
+            text-align: right;
+        }
+
+        .arrow-icon {
+            font-size: 1.2rem;
+            color: #999;
+            transition: transform 0.3s ease;
+        }
+
+        .expandable-section.active .arrow-icon {
+            transform: rotate(180deg);
+            color: #6B5EFF;
+        }
+
+        .section-header:hover {
+            background-color: #f8f9fa;
+        }
+
+        .section-header:hover .arrow-icon {
+            color: #6B5EFF;
+        }
+
+        /* Typing indicator styles */
+        .typing-indicator {
+            padding: 1rem;
+            display: flex;
+            gap: 4px;
+            margin-left: 1rem;
+        }
+
+        .typing-indicator .dot {
+            width: 8px;
+            height: 8px;
+            background-color: #ccc;
+            border-radius: 50%;
+            animation: typing 1s infinite ease-in-out;
+        }
+
+        .typing-indicator .dot:nth-child(1) { animation-delay: 0s; }
+        .typing-indicator .dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator .dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .modal-header h2 {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: #333;
+            margin: 0;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            color: #666;
+            cursor: pointer;
+            padding: 0.5rem;
+            transition: color 0.3s;
+        }
+
+        .modal-close:hover {
+            color: var(--primary-color);
+        }
+
+        .file-upload-container {
+            text-align: center;
+            padding: 2rem;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .file-upload-container:hover {
+            border-color: var(--primary-color);
+            background-color: #f0f2ff;
+        }
+
+        .file-upload-container i {
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .file-upload-container p {
+            margin: 0;
+            color: #666;
+        }
+
+        .file-upload-input {
+            display: none;
+        }
+
+        .selected-file {
+            margin-top: 1rem;
+            padding: 0.5rem;
+            background-color: #e8e8e8;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .modal-footer {
+            margin-top: 1.5rem;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .modal-send-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .modal-send-btn.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-send-btn:hover {
+            background-color: #5649FF;
+            transform: translateY(-1px);
+        }
+
+        .modal-send-btn i {
+            font-size: 0.9rem;
+        }
+
+        /* Rule selector styles */
+        .rule-selector-container {
+            padding: 1rem;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .rule-selector-label {
+            font-size: 0.9rem;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .rule-selector {
+            flex: 1;
+            padding: 0.65rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            color: #333;
+            background-color: white;
+            cursor: pointer;
+            outline: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23666' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: calc(100% - 12px) center;
+            padding-right: 35px;
+            transition: all 0.3s ease;
+        }
+
+        .rule-selector:hover {
+            border-color: var(--primary-color);
+        }
+
+        .rule-selector:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(107, 94, 255, 0.1);
+        }
+        .linked-content{
+            margin: -5px 0px 0px 0px;
+        }
+
+        /* Add these styles to ensure proper display */
+        .section-content {
+            {% comment %} max-height: none !important; {% endcomment %}
+            transition: opacity 0.3s ease-out;
+        }
+        
+        .expandable-section.active .section-content {
+            max-height: none !important;
+            opacity: 1;
+        }
+        
+        .content-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .content-row:last-child {
+            border-bottom: none;
+        }
+        
+        .cases {
+            color: #666;
+            margin-right: 1rem;
+        }
+        
+        .amount {
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo-section">
+            <img src="nwr_dashboard\static\rail_logo.png" alt="NWR Logo">
+            <h1>NWR Pension Portal</h1>
+        </div>
+        <div class="nav-buttons">
+            <a href="#" class="nav-button">
+                <i class="fas fa-download"></i>
+                NWR Master PPO
+            </a>
+            <a href="#" class="nav-button">
+                <i class="fas fa-bank"></i>
+                Bank's Master
+            </a>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        <!-- Left Column -->
+        <div class="card">
+            <div class="date-upload-container">
+                <select class="dropdown" id="dateSelector">
+                    
+                    
+                    <option value="5">May </option>
+                    <option value="6">June </option>
+                    <option value="7">July </option>
+                    <option value="8">August </option>
+                    <option value="9">September </option>
+               
+                
+                </select>
+                <button class="upload-button">
+                    <i class="fas fa-upload"></i>
+                    Debit Scroll Upload
+                </button>
+            </div>
+            <div class="chart-container">
+                <canvas id="lineChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <canvas id="pieChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Middle Column -->
+        <div class="card middle-column" id="middleColumn">
+            <!-- Content will be dynamically inserted here -->
+        </div>
+
+        <!-- Right Column - Chatbot -->
+        <div class="chatbot">
+            <div class="rule-selector-container">
+                <span class="rule-selector-label">Select Rule:</span>
+                <select class="rule-selector" id="ruleSelector">
+                    <option value="1">Overall underpayment/overpayment</option>
+                    <option value="2">Age Metrics</option>
+                    <option value="3">Family Pension Conversion</option>
+                    
+                </select>
+            </div>
+            <div class="chat-header">
+                <div class="chat-header-left">
+                    <h2>RailBot AI</h2>
+                </div>
+                <div class="chat-actions">
+                    <button class="icon-button">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    <button class="icon-button">
+                        <i class="fas fa-cog"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="chat-messages">
+                <div class="message bot-message">
+                    <p>Hello! I'm your personal AI Assistant Slothpilot.</p>
+                    <span class="message-time">10:25</span>
+                </div>
+                <div class="message user-message">
+                    <p>Hi! Can you help me with something?</p>
+                    <span class="message-time">10:25</span>
+                </div>
+                <div class="message bot-message">
+                    <p>Do Androids Dream of Electric Sheep? is a 1968 dystopian science fiction novel by American writer Philip K. Dick. Set in a post-apocalyptic San Francisco, the story unfolds after a devastating global war.</p>
+                    <span class="message-time">12:25</span>
+                </div>
+                <div class="message bot-message">
+                    <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p>
+                    <span class="message-time">02:25</span>
+                </div>
+            </div>
+            <div class="chat-input">
+                <div class="input-wrapper">
+                    <input type="text" placeholder="Message to slothpilot...">
+                    <!-- <button class="emoji-button">
+                        <i class="far fa-smile"></i>
+                    </button> -->
+                </div>
+                <button class="send-button">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add this HTML right before the chat input div for typing indicator -->
+    <div class="typing-indicator" style="display: none;">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+    </div>
+
+    <!-- Modals -->
+    <div id="debitScrollModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Upload Debit Scroll</h2>
+                <button class="modal-close"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="file-upload-container">
+                <input type="file" class="file-upload-input" accept=".xlsx,.xls,.csv">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <p>Click to upload or drag and drop</p>
+                <p class="selected-file"></p>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-send-btn">
+                    <i class="fas fa-paper-plane"></i>
+                    Send File
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="nwrMasterModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Upload NWR Master PPO</h2>
+                <button class="modal-close"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="file-upload-container">
+                <input type="file" class="file-upload-input" accept=".xlsx,.xls,.csv">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <p>Click to upload or drag and drop</p>
+                <p class="selected-file"></p>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-send-btn">
+                    <i class="fas fa-paper-plane"></i>
+                    Send File
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="bankMasterModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Upload Bank's Master</h2>
+                <button class="modal-close"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="file-upload-container">
+                <input type="file" class="file-upload-input" accept=".xlsx,.xls,.csv">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <p>Click to upload or drag and drop</p>
+                <p class="selected-file"></p>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-send-btn">
+                    <i class="fas fa-paper-plane"></i>
+                    Send File
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global chart variables
+        let lineChart = null;
+        let pieChart = null;
+
+        // Function to initialize charts with default data
+        function initializeDefaultCharts() {
+            const defaultData = {
+                labels: ['Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb'],
+                lineData1: [35000, 65000, 22000, 25000, 58000, 30000],
+                lineData2: [20000, 30000, 52000, 40000, 15000, 45000],
+                pieData: [63, 25, 22]
+            };
+
+            const lineCtx = document.getElementById('lineChart').getContext('2d');
+            const pieCtx = document.getElementById('pieChart').getContext('2d');
+
+            // Destroy existing charts if they exist
+            if (lineChart) {
+                lineChart.destroy();
+                lineChart = null;
+            }
+            if (pieChart) {
+                pieChart.destroy();
+                pieChart = null;
+            }
+
+            // Create line chart
+            lineChart = new Chart(lineCtx, {
+                type: 'line',
+                data: {
+                    labels: defaultData.labels,
+                    datasets: [{
+                        label: 'Overpayments (₹)',
+                        data: defaultData.lineData1,
+                        borderColor: '#6B5EFF',
+                        tension: 0.4,
+                        fill: false
+                    }, {
+                        label: 'Underpayments (₹)',
+                        data: defaultData.lineData2,
+                        borderColor: '#36A2EB',
+                        tension: 0.4,
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Month-over-Month Trends'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Amount (₹)'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Create pie chart
+            pieChart = new Chart(pieCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Overpayments', 'Underpayments', 'Not Found'],
+                    datasets: [{
+                        data: defaultData.pieData,
+                        backgroundColor: [
+                            '#6B5EFF',
+                            '#36A2EB',
+                            '#dbdbd9'
+                        ],
+                        borderColor: '#FFFFFF',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Payment Distribution'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Function to update charts with API data
+        function updateChartsWithApiData(response) {
+            try {
+                if (!response.success || !response.data) {
+                    console.error('Invalid data format');
+                    return;
+                }
+
+                const data = response.data;
+                const ruleData = data.rule_data;
+                const isRule1Format = ruleData.hasOwnProperty('matched_records');
+                const isRule3Format = ruleData.hasOwnProperty('regular_pension_count');
+
+                const lineCtx = document.getElementById('lineChart').getContext('2d');
+                const pieCtx = document.getElementById('pieChart').getContext('2d');
+
+                // Destroy existing charts
+                if (lineChart) {
+                    lineChart.destroy();
+                    lineChart = null;
+                }
+                if (pieChart) {
+                    pieChart.destroy();
+                    pieChart = null;
+                }
+
+                if (isRule3Format) {
+                    // Rule 3: Create line chart for pension distribution
+                    lineChart = new Chart(lineCtx, {
+                        type: 'line',
+                        data: {
+                            labels: ['Regular Pension', 'Family Pension'],
+                            datasets: [{
+                                label: 'Number of Pensioners',
+                                data: [
+                                    ruleData.regular_pension_count,
+                                    ruleData.family_pension_count
+                                ],
+                                borderColor: '#6B5EFF',
+                                tension: 0.4,
+                                fill: false
+                            }, {
+                                label: 'Pension Amount (₹)',
+                                data: [
+                                    ruleData.regular_pension_amount,
+                                    ruleData.family_pension_amount
+                                ],
+                                borderColor: '#36A2EB',
+                                tension: 0.4,
+                                fill: false,
+                                yAxisID: 'y1'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                title: {
+                                    display: true,
+                                    text: 'Pension Type Distribution'
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            const label = context.dataset.label || '';
+                                            const value = context.raw;
+                                            if (label.includes('Amount')) {
+                                                return `${label}: ₹${value.toLocaleString()}`;
+                                            }
+                                            return `${label}: ${value.toLocaleString()}`;
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Number of Pensioners'
+                                    },
+                                    ticks: {
+                                        callback: function(value) {
+                                            return value.toLocaleString();
+                                        }
+                                    }
+                                },
+                                y1: {
+                                    beginAtZero: true,
+                                    position: 'right',
+                                    title: {
+                                        display: true,
+                                        text: 'Amount (₹)'
+                                    },
+                                    grid: {
+                                        drawOnChartArea: false
+                                    },
+                                    ticks: {
+                                        callback: function(value) {
+                                            return '₹' + value.toLocaleString();
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+
+                    // Rule 3: Create pie chart for pension type distribution
+                    pieChart = new Chart(pieCtx, {
+                        type: 'pie',
+                        data: {
+                            labels: ['Regular Pension', 'Family Pension'],
+                            datasets: [{
+                                data: [
+                                    ruleData.regular_pension_count,
+                                    ruleData.family_pension_count
+                                ],
+                                backgroundColor: [
+                                    '#6B5EFF',
+                                    '#36A2EB'
+                                ],
+                                borderColor: '#FFFFFF',
+                                borderWidth: 2
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom'
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Distribution by Pension Type'
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            const value = context.raw;
+                                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                            const percentage = ((value / total) * 100).toFixed(1);
+                                            const amount = context.label === 'Regular Pension' 
+                                                ? ruleData.regular_pension_amount 
+                                                : ruleData.family_pension_amount;
+                                            return [
+                                                `${value.toLocaleString()} pensioners (${percentage}%)`,
+                                                `Total Amount: ₹${amount.toLocaleString()}`
+                                            ];
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                } else if (isRule1Format) {
+                    // Rule 1: Create line chart for payment trends
+                    lineChart = new Chart(lineCtx, {
+                        type: 'line',
+                        data: {
+                            labels: ['Matched', 'Unmatched', 'Overpayment', 'Underpayment'],
+                            datasets: [{
+                                label: 'Number of Cases',
+                                data: [
+                                    ruleData.matched_records,
+                                    ruleData.unlinked_records,
+                                    ruleData.overpayment_count,
+                                    ruleData.underpayment_count
+                                ],
+                                borderColor: '#6B5EFF',
+                                tension: 0.4,
+                                fill: false
+                            }, {
+                                label: 'Amount (₹)',
+                                data: [
+                                    0, // No amount for matched records
+                                    0, // No amount for unlinked records
+                                    ruleData.overpayment_amount,
+                                    ruleData.underpayment_amount
+                                ],
+                                borderColor: '#36A2EB',
+                                tension: 0.4,
+                                fill: false,
+                                yAxisID: 'y1'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                title: {
+                                    display: true,
+                                    text: 'Payment Analysis Overview'
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            const label = context.dataset.label || '';
+                                            const value = context.raw;
+                                            if (label.includes('Amount')) {
+                                                return value > 0 ? `${label}: ₹${value.toLocaleString()}` : '';
+                                            }
+                                            return `${label}: ${value.toLocaleString()}`;
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Number of Cases'
+                                    },
+                                    ticks: {
+                                        callback: function(value) {
+                                            return value.toLocaleString();
+                                        }
+                                    }
+                                },
+                                y1: {
+                                    beginAtZero: true,
+                                    position: 'right',
+                                    title: {
+                                        display: true,
+                                        text: 'Amount (₹)'
+                                    },
+                                    grid: {
+                                        drawOnChartArea: false
+                                    },
+                                    ticks: {
+                                        callback: function(value) {
+                                            return '₹' + value.toLocaleString();
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+
+                    // Rule 1: Create pie chart for case distribution
+                    pieChart = new Chart(pieCtx, {
+                        type: 'pie',
+                        data: {
+                            labels: ['Matched Records', 'Unlinked Records', 'Overpayment Cases', 'Underpayment Cases'],
+                            datasets: [{
+                                data: [
+                                    ruleData.matched_records,
+                                    ruleData.unlinked_records,
+                                    ruleData.overpayment_count,
+                                    ruleData.underpayment_count
+                                ],
+                                backgroundColor: [
+                                    '#6B5EFF',
+                                    '#36A2EB',
+                                    '#FF6384',
+                                    '#4BC0C0'
+                                ],
+                                borderColor: '#FFFFFF',
+                                borderWidth: 2
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom'
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Distribution of Cases'
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            const value = context.raw;
+                                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                            const percentage = ((value / total) * 100).toFixed(1);
+                                            return `${value.toLocaleString()} cases (${percentage}%)`;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                } else {
+                    // Rule 2: Create line chart for age-wise distribution
+                    const ageRanges = Object.keys(ruleData).sort((a, b) => {
+                        const aStart = parseInt(a.split('-')[0]);
+                        const bStart = parseInt(b.split('-')[0]);
+                        return aStart - bStart;
+                    });
+                    const pensionAmounts = ageRanges.map(range => ruleData[range].pension);
+                    const pensionerCounts = ageRanges.map(range => ruleData[range].count);
+
+                    lineChart = new Chart(lineCtx, {
+                        type: 'line',
+                        data: {
+                            labels: ageRanges.map(range => `${range} years`),
+                            datasets: [{
+                                label: 'Pension Amount (₹)',
+                                data: pensionAmounts,
+                                borderColor: '#6B5EFF',
+                                tension: 0.4,
+                                fill: false
+                            }, {
+                                label: 'Number of Pensioners',
+                                data: pensionerCounts,
+                                borderColor: '#36A2EB',
+                                tension: 0.4,
+                                fill: false,
+                                yAxisID: 'y1'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                title: {
+                                    display: true,
+                                    text: 'Age-wise Pension Distribution'
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            const label = context.dataset.label || '';
+                                            const value = context.raw;
+                                            if (label.includes('Amount')) {
+                                                return `${label}: ₹${value.toLocaleString()}`;
+                                            }
+                                            return `${label}: ${value.toLocaleString()}`;
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Pension Amount (₹)'
+                                    },
+                                    ticks: {
+                                        callback: function(value) {
+                                            return '₹' + value.toLocaleString();
+                                        }
+                                    }
+                                },
+                                y1: {
+                                    beginAtZero: true,
+                                    position: 'right',
+                                    title: {
+                                        display: true,
+                                        text: 'Number of Pensioners'
+                                    },
+                                    grid: {
+                                        drawOnChartArea: false
+                                    },
+                                    ticks: {
+                                        callback: function(value) {
+                                            return value.toLocaleString();
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+
+                    // Rule 2: Create pie chart for age distribution
+                    pieChart = new Chart(pieCtx, {
+                        type: 'pie',
+                        data: {
+                            labels: ageRanges.map(range => `${range} years`),
+                            datasets: [{
+                                data: pensionerCounts,
+                                backgroundColor: [
+                                    '#6B5EFF',
+                                    '#36A2EB',
+                                    '#4BC0C0',
+                                    '#FFCD56',
+                                    '#FF6384'
+                                ],
+                                borderColor: '#FFFFFF',
+                                borderWidth: 2
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom'
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Distribution of Pensioners by Age'
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            const value = context.raw;
+                                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                            const percentage = ((value / total) * 100).toFixed(1);
+                                            const amount = ruleData[context.label.replace(' years', '')].pension;
+                                            return [
+                                                `${value.toLocaleString()} pensioners (${percentage}%)`,
+                                                `Total Amount: ₹${amount.toLocaleString()}`
+                                            ];
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Error updating charts:', error);
+                initializeDefaultCharts();
+            }
+        }
+
+        // Function to update middle column data
+        function updateMiddleColumn(response) {
+            try {
+                if (!response.success || !response.data) {
+                    console.error('Invalid data format for middle column');
+                    return;
+                }
+
+                const data = response.data;
+                const ruleData = data.rule_data;
+                const isRule1Format = ruleData.hasOwnProperty('matched_records');
+                const isRule3Format = ruleData.hasOwnProperty('regular_pension_count');
+
+                // Create the appropriate middle column structure
+                createMiddleColumnContent(isRule1Format);
+
+                if (isRule3Format) {
+                    // Update Regular Pension section
+                    const regularPensionElement = document.querySelector('.regular-pension-count');
+                    const regularPensionAmountElement = document.querySelector('.regular-pension-amount');
+                    
+                    if (regularPensionElement) {
+                        regularPensionElement.textContent = ruleData.regular_pension_count.toLocaleString();
+                    }
+                    if (regularPensionAmountElement) {
+                        regularPensionAmountElement.textContent = `₹${ruleData.regular_pension_amount.toLocaleString()}`;
+                    }
+                } else if (isRule1Format) {
+                    // Update Matched Records section
+                    const matchedElement = document.querySelector('.matched-records');
+                    const unlinkedElement = document.querySelector('.unlinked-records');
+                    
+                    if (matchedElement) {
+                        matchedElement.textContent = ruleData.matched_records.toLocaleString();
+                    }
+                    if (unlinkedElement) {
+                        unlinkedElement.textContent = ruleData.unlinked_records.toLocaleString();
+                    }
+
+                    // Update Payment Analysis section
+                    const elements = {
+                        overpaymentCount: document.querySelector('.overpayment-count'),
+                        overpaymentAmount: document.querySelector('.overpayment-amount'),
+                        underpaymentCount: document.querySelector('.underpayment-count'),
+                        underpaymentAmount: document.querySelector('.underpayment-amount')
+                    };
+
+                    if (elements.overpaymentCount) {
+                        elements.overpaymentCount.textContent = ruleData.overpayment_count.toLocaleString();
+                    }
+                    if (elements.overpaymentAmount) {
+                        elements.overpaymentAmount.textContent = `₹${ruleData.overpayment_amount.toLocaleString()}`;
+                    }
+                    if (elements.underpaymentCount) {
+                        elements.underpaymentCount.textContent = ruleData.underpayment_count.toLocaleString();
+                    }
+                    if (elements.underpaymentAmount) {
+                        elements.underpaymentAmount.textContent = `₹${ruleData.underpayment_amount.toLocaleString()}`;
+                    }
+                } else {
+                    // Update Total Summary section
+                    const totalPensionElement = document.querySelector('.total-pension');
+                    const totalAmountElement = document.querySelector('.total-amount');
+                    
+                    if (totalPensionElement) {
+                        totalPensionElement.textContent = data.total_pensioners.toLocaleString();
+                    }
+                    if (totalAmountElement) {
+                        totalAmountElement.textContent = `₹${data.total_amt.toLocaleString()}`;
+                    }
+
+                    // Update Age-wise Distribution section
+                    const unlinkedContent = document.querySelector('.unlinked-content');
+                    if (unlinkedContent) {
+                        unlinkedContent.innerHTML = '';
+                        
+                        const sortedRanges = Object.keys(ruleData).sort((a, b) => {
+                            const aStart = parseInt(a.split('-')[0]);
+                            const bStart = parseInt(b.split('-')[0]);
+                            return aStart - bStart;
+                        });
+
+                        sortedRanges.forEach(ageRange => {
+                            const rangeData = ruleData[ageRange];
+                            const row = document.createElement('div');
+                            row.className = 'content-row';
+                            row.innerHTML = `
+                                <span>${ageRange} years</span>
+                                <div style="display: flex; gap: 1rem; align-items: center;">
+                                    <span class="cases">${rangeData.count.toLocaleString()} cases</span>
+                                    <span class="amount">₹${rangeData.pension.toLocaleString()}</span>
+                                </div>
+                            `;
+                            unlinkedContent.appendChild(row);
+                        });
+                    }
+                }
+
+                // Expand first section by default
+                const firstSection = document.querySelector('.expandable-section');
+                if (firstSection) {
+                    firstSection.classList.add('active');
+                    const content = firstSection.querySelector('.section-content');
+                    if (content) {
+                        content.style.maxHeight = `${content.scrollHeight}px`;
+                        content.style.opacity = '1';
+                        content.style.padding = '6px 26px';
+                        content.style.marginBottom = '26px';
+                    }
+                }
+
+            } catch (error) {
+                console.error('Error updating middle column:', error);
+            }
+        }
+
+        // Function to fetch and update data for a specific rule
+        async function fetchRuleData(ruleId, month ) {
+            console.log('Fetching rule data:', ruleId, month);
+            try {
+                const response = await fetch(`http://127.0.0.1:8000/dashboard/get_rule/?month=${month}&rule=${ruleId}`);
+                if (!response.ok) throw new Error('Network response was not ok');
+                const data = await response.json();
+                console.log('API Response:', data);
+                return data;
+            } catch (error) {
+                console.error('Error fetching rule data:', error);
+                return null;
+            }
+        }
+
+        // Function to handle rule selection
+        async function handleRuleSelection(ruleId, month) {
+            try {
+                const response = await fetchRuleData(ruleId, month);
+                if (response && response.success) {
+                    window.currentResponse = response; // Store the response
+                    updateChartsWithApiData(response);
+                    updateMiddleColumn(response);
+                } else {
+                    initializeDefaultCharts();
+                }
+            } catch (error) {
+                console.error('Error handling rule selection:', error);
+                initializeDefaultCharts();
+            }
+        }
+
+        // Function to handle file upload
+        function handleFileUpload(file, modalType) {
+            return new Promise(async (resolve, reject) => {
+                try {
+                    const formData = new FormData();
+                    formData.append('file', file);
+
+                    let endpoint;
+                    switch (modalType) {
+                        case 'debitScrollModal':
+                            endpoint = '/api/upload/debit-scroll';
+                            break;
+                        case 'nwrMasterModal':
+                            endpoint = '/api/upload/nwr-master';
+                            break;
+                        case 'bankMasterModal':
+                            endpoint = '/api/upload/bank-master';
+                            break;
+                        default:
+                            throw new Error('Unknown upload type');
+                    }
+
+                    const response = await fetch(endpoint, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const result = await response.json();
+                    resolve(result);
+                } catch (error) {
+                    reject(error);
+                }
+            });
+        }
+
+        // Function to initialize expandable sections
+        function initializeExpandableSections() {
+            const sections = document.querySelectorAll('.expandable-section');
+            
+            sections.forEach(section => {
+                const header = section.querySelector('.section-header');
+                const content = section.querySelector('.section-content');
+                
+                // Set initial state
+                content.style.maxHeight = '0px';
+                content.style.opacity = '0';
+                
+                header.addEventListener('click', () => {
+                    // Toggle active class
+                    section.classList.toggle('active');
+                    
+                    // Update content visibility
+                    if (section.classList.contains('active')) {
+                        content.style.maxHeight = `${content.scrollHeight}px`;
+                        content.style.opacity = '1';
+                        content.style.padding = '6px 26px';
+                        content.style.marginBottom = '26px';
+                    } else {
+                        content.style.maxHeight = '0px';
+                        content.style.opacity = '0';
+                        content.style.padding = '0px 26px';
+                        content.style.marginBottom = '0px';
+                    }
+                });
+            });
+        }
+
+        // Initialize everything when the page loads
+        function initializeApp() {
+            // Initialize default charts
+            initializeDefaultCharts();
+            
+            // Initialize expandable sections
+            initializeExpandableSections();
+            
+            // Add event listener for rule selection
+            const ruleSelector = document.getElementById('ruleSelector');
+            const dateSelector = document.getElementById('dateSelector');
+            
+            if (ruleSelector && dateSelector) {
+                // Handle rule changes
+                ruleSelector.addEventListener('change', (e) => {
+                    const selectedMonth = dateSelector.value || '9'; // Default to 9 if no month selected
+                    handleRuleSelection(e.target.value, selectedMonth);
+                });
+                
+                // Handle date changes
+                dateSelector.addEventListener('change', (e) => {
+                    const selectedRule = ruleSelector.value || '1'; // Default to rule 1 if none selected
+                    handleRuleSelection(selectedRule, e.target.value);
+                });
+                
+                // Initial data load with default values
+                handleRuleSelection('1', '9');
+            }
+        }
+
+        // Call initialize function when DOM is loaded
+        document.addEventListener('DOMContentLoaded', initializeApp);
+        initializeDefaultCharts();
+        handleRuleSelection(1, 9)
+
+        // Add this function to create middle column content
+        function createMiddleColumnContent(isRule1Format) {
+            const middleColumn = document.getElementById('middleColumn');
+            const ruleData = window.currentResponse?.data?.rule_data;
+            const isRule3Format = ruleData?.hasOwnProperty('regular_pension_count');
+            
+            if (isRule3Format) {
+                // Rule 3 content
+                middleColumn.innerHTML = `
+                    <div class="expandable-section">
+                        <div class="section-header">
+                            <div class="header-left">
+                                <span class="dot linked"></span>
+                                <h2>Regular Pension</h2>
+                            </div>
+                            <i class="fas fa-angle-down arrow-icon"></i>
+                        </div>
+                        <div class="section-content">
+                            <div class="linked-content">
+                                <div class="content-row">
+                                    <span>Total Pensioners</span>
+                                    <span class="regular-pension-count">${ruleData.regular_pension_count.toLocaleString()}</span>
+                                </div>
+                                <div class="content-row">
+                                    <span>Total Amount</span>
+                                    <span class="regular-pension-amount">₹${ruleData.regular_pension_amount.toLocaleString()}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="expandable-section">
+                        <div class="section-header">
+                            <div class="header-left">
+                                <span class="dot unlinked"></span>
+                                <h2>Family Pension</h2>
+                            </div>
+                            <i class="fas fa-angle-down arrow-icon"></i>
+                        </div>
+                        <div class="section-content">
+                            <div class="unlinked-content">
+                                <div class="content-row">
+                                    <span>Total Pensioners</span>
+                                    <span class="family-pension-count">${ruleData.family_pension_count.toLocaleString()}</span>
+                                </div>
+                                <div class="content-row">
+                                    <span>Total Amount</span>
+                                    <span class="family-pension-amount">₹${ruleData.family_pension_amount.toLocaleString()}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (isRule1Format) {
+                // Rule 1 content
+                middleColumn.innerHTML = `
+                    <div class="expandable-section">
+                        <div class="section-header">
+                            <div class="header-left">
+                                <span class="dot linked"></span>
+                                <h2>Matched Records</h2>
+                            </div>
+                            <i class="fas fa-angle-down arrow-icon"></i>
+                        </div>
+                        <div class="section-content">
+                            <div class="linked-content">
+                                <div class="content-row">
+                                    <span>Total Matched</span>
+                                    <span class="matched-records">0</span>
+                                </div>
+                                <div class="content-row">
+                                    <span>Total Unlinked</span>
+                                    <span class="unlinked-records">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="expandable-section">
+                        <div class="section-header">
+                            <div class="header-left">
+                                <span class="dot unlinked"></span>
+                                <h2>Payment Analysis</h2>
+                            </div>
+                            <i class="fas fa-angle-down arrow-icon"></i>
+                        </div>
+                        <div class="section-content">
+                            <div class="unlinked-content">
+                                <div class="content-row">
+                                    <span>Overpayment Cases</span>
+                                    <span class="overpayment-count">0</span>
+                                </div>
+                                <div class="content-row">
+                                    <span>Overpayment Amount</span>
+                                    <span class="overpayment-amount">₹0</span>
+                                </div>
+                                <div class="content-row">
+                                    <span>Underpayment Cases</span>
+                                    <span class="underpayment-count">0</span>
+                                </div>
+                                <div class="content-row">
+                                    <span>Underpayment Amount</span>
+                                    <span class="underpayment-amount">₹0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Rule 2 content
+                middleColumn.innerHTML = `
+                    <div class="expandable-section">
+                        <div class="section-header">
+                            <div class="header-left">
+                                <span class="dot linked"></span>
+                                <h2>Total Summary</h2>
+                            </div>
+                            <i class="fas fa-angle-down arrow-icon"></i>
+                        </div>
+                        <div class="section-content">
+                            <div class="linked-content">
+                                <div class="content-row">
+                                    <span>Total Pensioners</span>
+                                    <span class="total-pension">0</span>
+                                </div>
+                                <div class="content-row">
+                                    <span>Total Amount</span>
+                                    <span class="total-amount">₹0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="expandable-section">
+                        <div class="section-header">
+                            <div class="header-left">
+                                <span class="dot unlinked"></span>
+                                <h2>Age-wise Distribution</h2>
+                            </div>
+                            <i class="fas fa-angle-down arrow-icon"></i>
+                        </div>
+                        <div class="section-content">
+                            <div class="unlinked-content">
+                                <!-- Age-wise data will be dynamically inserted here -->
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Reinitialize expandable sections
+            initializeExpandableSections();
+        }
+    </script>
+</body>
+</html>
