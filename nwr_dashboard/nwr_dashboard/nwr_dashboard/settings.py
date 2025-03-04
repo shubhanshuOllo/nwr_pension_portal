@@ -76,20 +76,16 @@ WSGI_APPLICATION = 'nwr_dashboard.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-DATABASES = {  
-    'default': {  
-        'ENGINE': 'django.db.backends.mysql',  
-        'NAME': 'nwr_dashboard',  
-        'USER': 'root',  
-        'PASSWORD': 'root',  
-        'HOST': '127.0.0.1',  
-        'PORT': '3306',  
-        'OPTIONS': {  
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'"  
-        }  
-    }  
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'database-1',       # Your RDS database name
+        'USER': 'admin',       # Your RDS username
+        'PASSWORD': 'Ollosoft123', # Your RDS password
+        'HOST': 'database-1.cpioguimmkg7.eu-north-1.rds.amazonaws.com',  # Your RDS endpoint
+        'PORT': '3306',               # Default MySQL port
+    }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
