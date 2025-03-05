@@ -79,10 +79,10 @@ WSGI_APPLICATION = 'nwr_dashboard.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'database-1',       # Your RDS database name
+        'NAME': 'nwr_db',       # Your RDS database name
         'USER': 'admin',       # Your RDS username
         'PASSWORD': 'Ollosoft123', # Your RDS password
-        'HOST': 'database-1.cpioguimmkg7.eu-north-1.rds.amazonaws.com',  # Your RDS endpoint
+        'HOST': 'database-2.cpioguimmkg7.eu-north-1.rds.amazonaws.com',  # Your RDS endpoint
         'PORT': '3306',               # Default MySQL port
     }
 }
