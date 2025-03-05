@@ -868,7 +868,7 @@
                     <option value="1">Overall underpayment/overpayment</option>
                     <option value="2">Age Metrics</option>
                     <option value="3">Family Pension Conversion</option>
-                    
+                    <option value="4">New Pensioners</option>
                 </select>
             </div>
             <div class="chat-header">
@@ -1098,6 +1098,9 @@
                 const ruleData = data.rule_data;
                 const isRule1Format = ruleData.hasOwnProperty('matched_records');
                 const isRule3Format = ruleData.hasOwnProperty('regular_pension_count');
+                const isRule4Format = ruleData.hasOwnProperty('stats');
+
+                
 
                 const lineCtx = document.getElementById('lineChart').getContext('2d');
                 const pieCtx = document.getElementById('pieChart').getContext('2d');
@@ -1111,8 +1114,117 @@
                     pieChart.destroy();
                     pieChart = null;
                 }
-
-                if (isRule3Format) {
+                if (isRule4Format) {
+                    // 📌 Rule 4: Monthly Pension Trends
+                    const stats = ruleData.stats;
+                    const months = Object.keys(stats).reverse(); // Ensure chronological order
+                    const pensionCounts = months.map(month => stats[month].count);
+                    const pensionAmounts = months.map(month => stats[month].total_pension);
+        
+                    // 🎨 Create Line Chart for Monthly Pension Trends
+                    lineChart = new Chart(lineCtx, {
+                        type: 'line',
+                        data: {
+                            labels: months,
+                            datasets: [
+                                {
+                                    label: 'Number of Pensioners',
+                                    data: pensionCounts,
+                                    borderColor: '#6B5EFF',
+                                    backgroundColor: 'rgba(107, 94, 255, 0.2)',
+                                    tension: 0.4,
+                                    fill: true
+                                },
+                                {
+                                    label: 'Total Pension Amount (₹)',
+                                    data: pensionAmounts,
+                                    borderColor: '#36A2EB',
+                                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                                    tension: 0.4,
+                                    fill: true,
+                                    yAxisID: 'y1'
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                title: {
+                                    display: true,
+                                    text: 'Monthly Pension Statistics'
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            const label = context.dataset.label || '';
+                                            const value = context.raw;
+                                            return label.includes('Amount') ? `${label}: ₹${value.toLocaleString()}` : `${label}: ${value.toLocaleString()}`;
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Number of Pensioners'
+                                    }
+                                },
+                                y1: {
+                                    beginAtZero: true,
+                                    position: 'right',
+                                    title: {
+                                        display: true,
+                                        text: 'Pension Amount (₹)'
+                                    },
+                                    grid: {
+                                        drawOnChartArea: false
+                                    }
+                                }
+                            }
+                        }
+                    });
+        
+                    // 🎨 Create Pie Chart for Monthly Pension Distribution
+                    pieChart = new Chart(pieCtx, {
+                        type: 'pie',
+                        data: {
+                            labels: months,
+                            datasets: [{
+                                data: pensionCounts,
+                                backgroundColor: ['#6B5EFF', '#36A2EB', '#FF6384', '#FFCD56'],
+                                borderColor: '#FFFFFF',
+                                borderWidth: 2
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom'
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Monthly Pension Distribution'
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            const value = context.raw;
+                                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                            const percentage = ((value / total) * 100).toFixed(1);
+                                            return `${value.toLocaleString()} pensioners (${percentage}%)`;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                } 
+                else if (isRule3Format) {
                     // Rule 3: Create line chart for pension distribution
                     lineChart = new Chart(lineCtx, {
                         type: 'line',
@@ -1767,8 +1879,53 @@
             const middleColumn = document.getElementById('middleColumn');
             const ruleData = window.currentResponse?.data?.rule_data;
             const isRule3Format = ruleData?.hasOwnProperty('regular_pension_count');
-            
-            if (isRule3Format) {
+            const isRule4Format =  ruleData?.hasOwnProperty('stats');
+           
+            if(isRule4Format){
+                middleColumn.innerHTML = `
+                <div class="expandable-section">
+            <div class="section-header">
+                <div class="header-left">
+                    <span class="dot linked"></span>
+                    <h2>Number of Pensioners Added Each Month</h2>
+                </div>
+                <i class="fas fa-angle-down arrow-icon"></i>
+            </div>
+            <div class="section-content">
+                <div class="stats-content">
+                    ${Object.keys(ruleData.stats).map(month => `
+                        <div class="content-row">
+                            <span>${month}</span>
+                            <span >${ruleData.stats[month].count.toLocaleString()}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        </div>
+
+        <div class="expandable-section">
+            <div class="section-header">
+                <div class="header-left">
+                    <span class="dot unlinked"></span>
+                    <h2>Total Pension Amount Added Each Month</h2>
+                </div>
+                <i class="fas fa-angle-down arrow-icon"></i>
+            </div>
+            <div class="section-content">
+                <div class="stats-content">
+                    ${Object.keys(ruleData.stats).map(month => `
+                        <div class="content-row">
+                            <span>${month}</span>
+                            <span >₹${ruleData.stats[month].total_pension.toLocaleString()}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        </div>
+            `;
+
+            }
+            else if (isRule3Format) {
                 // Rule 3 content
                 middleColumn.innerHTML = `
                     <div class="expandable-section">

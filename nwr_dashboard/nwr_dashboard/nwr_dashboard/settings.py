@@ -31,7 +31,7 @@ ALLOWED_HOSTS = ["*"]
 # Application definition
 
 INSTALLED_APPS = [
-    
+     'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -42,7 +42,24 @@ INSTALLED_APPS = [
     'dashboard',
 ]
 
+CORS_ALLOW_ALL_ORIGINS = True 
+
+CORS_ALLOW_METHODS = [
+    "GET",
+    "POST",
+    "PUT",
+    "DELETE",
+    "OPTIONS",
+]
+
+# Allow all headers
+CORS_ALLOW_HEADERS = [
+    "content-type",
+    "authorization",
+    "X-Requested-With",
+]
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -76,16 +93,29 @@ WSGI_APPLICATION = 'nwr_dashboard.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'nwr_dashboard',       # Your RDS database name
+#         'USER': 'root',       # Your RDS username
+#         'PASSWORD': 'root', # Your RDS password
+#         'HOST': 'localhost',  # Your RDS endpoint
+#         'PORT': '3306',               # Default MySQL port
+#     }
+# }
+
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'nwr_db',       # Your RDS database name
+        'NAME': 'database-1',       # Your RDS database name
         'USER': 'admin',       # Your RDS username
         'PASSWORD': 'Ollosoft123', # Your RDS password
-        'HOST': 'database-2.cpioguimmkg7.eu-north-1.rds.amazonaws.com',  # Your RDS endpoint
+        'HOST': 'database-1.cpioguimmkg7.eu-north-1.rds.amazonaws.com',  # Your RDS endpoint
         'PORT': '3306',               # Default MySQL port
     }
 }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators

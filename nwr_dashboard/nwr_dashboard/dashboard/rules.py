@@ -6,40 +6,56 @@ from dashboard.models import nwr_zone_data  # Replace 'your_app' with your actua
 from .models import *
 from django.db.models import Min
 from django.db.models import Q
+from datetime import date
+from django.db.models import Count
+from django.db.models import Sum, F, Case, When, Value
 
-# def get_pension_stats_last_6_months(month):
-#     today = now().date()
-#     if month
-#     six_months_ago = (today.replace(day=1) - timedelta(days=180)).replace(day=1)
+def get_pension_stats_last_6_months():
+    dates = {
+        "September 2024": (date(2024, 9, 1), date(2024, 9, 30)),
+        "August 2024": (date(2024, 8, 1), date(2024, 8, 31)),
+        "July 2024": (date(2024, 7, 1), date(2024, 7, 31)),
+        "June 2024": (date(2024, 6, 1), date(2024, 6, 30)),
+        "May 2024": (date(2024, 5, 1), date(2024, 5, 31)),
+        "April 2024": (date(2024, 4, 1), date(2024, 4, 30)),
+    }
 
-#     retirees_last_6_months = (
-#         nwr_zone_data.objects
-#         .filter(cessation_date__gte=six_months_ago, cessation_date__lte=today)
-#     )
+    # Get the counts and pension totals for each month
+    stats = {}
+    for month, date_range in dates.items():
+        queryset = nwr_zone_data.objects.filter(cessation_date__range=date_range)
 
-#     # ✅ Monthly Pensioner Count & Outlay
-#     pension_trend_last_6_months = list(
-#         retirees_last_6_months
-#         .annotate(month=TruncMonth('cessation_date'))
-#         .values('month')
-#         .annotate(
-#             total_pensioners=Count('id'),  # New pensioners added per month
-#             total_pension=Sum(
-#                 Case(
-#                     When(pension_amount__gt=0, then="pension_amount"),
-#                     When(pension_amount__isnull=True, then=Coalesce("efp_amount", Value(0))),
-#                     default=Coalesce("efp_amount", Value(0))
-#                 )
-#             )
-#         )
-#         .order_by('month')
-#     )
+        count = queryset.count()
 
-#     return {
-#         "total_retirees": retirees_last_6_months.count(),
-#         "pension_trend_last_6_months": pension_trend_last_6_months
-#     }
+        # Use pension_amount, if NULL or 0, use efp_amount, if NULL, use 0
+        total_pension = queryset.aggregate(
+            total=Sum(
+                Case(
+                    When(pension_amount__gt=0, then=F('pension_amount')),
+                    When(efp_amount__isnull=False, then=F('efp_amount')),
+                    default=Value(0)
+                )
+            )
+        )['total'] or 0  # Ensure result is not None
 
+        stats[month] = {
+            "count": count,
+            "total_pension": total_pension,
+        }
+
+        
+        response_data = {
+            "success": "true",
+            "data": {
+                "rule_data": {
+                "stats": stats,
+                
+                }
+            }
+        }
+
+
+    return response_data
 
 
 # def age_metrics(month):

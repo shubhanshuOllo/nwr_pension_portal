@@ -440,7 +440,7 @@ def clean_account_number(value):
 
 
 @csrf_exempt
-@login_required
+# @login_required
 def get_rule(request):
     # Extract month and rule from request
     month = request.GET.get('month')
@@ -458,5 +458,7 @@ def get_rule(request):
     if rule == "3":  
         
         data = family_pension_conversion(month)
+    if rule == "4":
+        data=get_pension_stats_last_6_months()
 
     return JsonResponse(data, safe=False)
