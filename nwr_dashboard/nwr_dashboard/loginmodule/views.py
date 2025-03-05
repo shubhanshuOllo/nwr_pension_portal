@@ -9,6 +9,7 @@ from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
+from django.utils.timezone import now
 
 
 # Signup View
@@ -26,6 +27,8 @@ def signup_view(request):
 
             user = User.objects.create_user(username=email, email=email, password=password)
             UserProfile.objects.create(user=user, fullname=fullname, email=email)
+            user.last_login = now()  # Set last_login to current timestamp
+            user.save()  # Save user
 
             login(request, user)  # Auto-login after signup
             return JsonResponse({"success": True, "redirect": "/index/"})  # Redirect to index
