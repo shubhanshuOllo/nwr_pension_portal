@@ -8,8 +8,11 @@ from django.contrib.auth import authenticate, login
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.contrib import messages
+from django.views.decorators.csrf import csrf_exempt
+
 
 # Signup View
+@csrf_exempt
 def signup_view(request):
     if request.method == "POST":
         try:
@@ -32,7 +35,7 @@ def signup_view(request):
 
     return render(request, "signup.html")
 
-
+@csrf_exempt
 # Login View
 def login_view(request):
     if request.method == "POST":
@@ -52,14 +55,14 @@ def login_view(request):
 
     return render(request, "login.html")
 
-
+@csrf_exempt
 # Index (Homepage)
 def index_view(request):
     if not request.user.is_authenticated:
         return redirect("login")  # Redirect unauthenticated users to login page
     return render(request, "index.html")
 
-
+@csrf_exempt
 # Logout View
 def logout_view(request):
     logout(request)

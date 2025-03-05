@@ -14,7 +14,7 @@ from .rules import *
 from django.db.models import Q
 from .rules import *
 
-
+@csrf_exempt
 def dashboard(request):
     if not request.user.is_authenticated:
         return redirect("login") 
@@ -69,7 +69,7 @@ def bulk_insert_records(new_records):
                 VALUES (%(account_number)s, %(ppo_number)s, %(name)s, %(dob)s, %(pension_start_date)s, %(date_of_retirement)s, %(age)s)
             """
             cursor.executemany(insert_query, new_records)
-
+@csrf_exempt
 @login_required
 def upload_master_excel(request):
     if request.method == 'POST':
@@ -439,7 +439,7 @@ def clean_account_number(value):
 
 
 
-
+@csrf_exempt
 @login_required
 def get_rule(request):
     # Extract month and rule from request
