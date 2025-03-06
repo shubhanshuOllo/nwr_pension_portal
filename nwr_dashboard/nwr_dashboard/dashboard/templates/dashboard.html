@@ -1354,37 +1354,37 @@
                                             return `${value.toLocaleString()} records (${percentage}%)`;
                                         }
                                     }
-                                }
-                            }
+                                }                              
+                            }                                    
                         }
-                    });
+                    });                         
                 }
-               else if (isRule5Format) {
+               else if (isRule5Format) {                                     
                     // 📌 Rule 4: Monthly Pension Trends
-                    const stats = ruleData.stats;
+                    const stats = ruleData.stats;                         
                     const months = Object.keys(stats).reverse(); // Ensure chronological order
-                    const pensionCounts = months.map(month => stats[month].count);
+                    const pensionCounts = months.map(month => stats[month].count);                       
                     const pensionAmounts = months.map(month => stats[month].total_pension);
         
                     // 🎨 Create Line Chart for Monthly Pension Trends
-                    lineChart = new Chart(lineCtx, {
+                    lineChart = new Chart(lineCtx, {                      
                         type: 'line',
                         data: {
-                            labels: months,
+                            labels: months,                                    
                             datasets: [
                                 {
-                                    label: 'Number of Pensioners',
+                                    label: 'Number of Pensioners',                        
                                     data: pensionCounts,
-                                    borderColor: '#6B5EFF',
+                                    borderColor: '#6B5EFF',                           
                                     backgroundColor: 'rgba(107, 94, 255, 0.2)',
                                     tension: 0.4,
-                                    fill: true
+                                    fill: true                       
                                 },
                                 {
-                                    label: 'Total Pension Amount (₹)',
+                                    label: 'Total Pension Amount (₹)',                                                     
                                     data: pensionAmounts,
                                     borderColor: '#36A2EB',
-                                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                                    backgroundColor: 'rgba(54, 162, 235, 0.2)',                                                                                   
                                     tension: 0.4,
                                     fill: true,
                                     yAxisID: 'y1'
@@ -1620,8 +1620,8 @@
                             }, {
                                 label: 'Amount (₹)',
                                 data: [
-                                    0, // No amount for matched records
-                                    0, // No amount for unlinked records
+                                    ruleData.linked_amount, // No amount for matched records
+                                    ruleData.unlinked_amount, // No amount for unlinked records
                                     ruleData.overpayment_amount,
                                     ruleData.underpayment_amount
                                 ],

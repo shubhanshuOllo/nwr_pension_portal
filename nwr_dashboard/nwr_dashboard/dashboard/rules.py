@@ -210,30 +210,85 @@ def overall_payment(month):
     matched_count = 0
     unmatched_count = 0
     basic_pay_mismatch = 0
+    linked_amount = 0  # Total pension amount for linked accounts
+   
 
+    # for record in nwr_data:
+    #     old_ppo = record['old_ppo']
+    #     new_ppo = record['new_ppo']
+    #     pension_amount = record['pension_amount'] if record['pension_amount'] is not None else record['efp_amount']
+
+     
+    #     basic_pay = ds_dict.get(old_ppo) or ds_dict.get(new_ppo)
+
+    #     if basic_pay is not None:  
+    #         matched_count += 1
+    #         if pension_amount and type(pension_amount) == int:
+    #             linked_amount += pension_amount
+
+    #         if basic_pay != pension_amount:
+    #             basic_pay_mismatch += 1
+    #         if basic_pay > pension_amount:
+               
+    #             over_payment_count += 1
+    #             over_payment_amount += (basic_pay - pension_amount)
+    #         elif basic_pay < pension_amount:
+     
+    #             under_payment_count += 1
+    #             under_payment_amount += (pension_amount - basic_pay)
+    #     else:
+    #         unmatched_count += 1  
+    #         if basic_pay:
+    #             unlinked_amount += basic_pay
+    nwr_ppo_set = set()
+    nwr_pension_dict = {}
+  
     for record in nwr_data:
         old_ppo = record['old_ppo']
         new_ppo = record['new_ppo']
         pension_amount = record['pension_amount'] if record['pension_amount'] is not None else record['efp_amount']
 
-     
-        basic_pay = ds_dict.get(old_ppo) or ds_dict.get(new_ppo)
+        if old_ppo:
+            nwr_ppo_set.add(old_ppo)
+            nwr_pension_dict[old_ppo] = pension_amount
+        if new_ppo:
+            nwr_ppo_set.add(new_ppo)
+            nwr_pension_dict[new_ppo] = pension_amount
 
-        if basic_pay is not None:  
+        # Initialize counts and totals
+    matched_count = 0
+    unmatched_count = 0
+    matched_amount = 0
+    unmatched_amount = 0
+
+    # Loop through ds_data and check if PPO numbers exist in nwr_data
+    for old_ppo, new_ppo, basic_pay in ds_data:
+        if old_ppo in nwr_ppo_set or new_ppo in nwr_ppo_set or old_ppo in nwr_ppo_set:
             matched_count += 1
-
-            if basic_pay != pension_amount:
-                basic_pay_mismatch += 1
-            if basic_pay > pension_amount:
-               
-                over_payment_count += 1
-                over_payment_amount += (basic_pay - pension_amount)
-            elif basic_pay < pension_amount:
-     
-                under_payment_count += 1
-                under_payment_amount += (pension_amount - basic_pay)
+            linked_amount += basic_pay
+            
+            if old_ppo in nwr_pension_dict:
+                matched_amount += nwr_pension_dict[old_ppo]
+                if basic_pay < nwr_pension_dict[old_ppo]:
+                    under_payment_count += 1
+                    under_payment_amount += (nwr_pension_dict[old_ppo] - basic_pay)
+                elif basic_pay > nwr_pension_dict[old_ppo]:
+                    over_payment_count += 1
+                    over_payment_amount += (basic_pay - nwr_pension_dict[old_ppo])
+            elif new_ppo in nwr_pension_dict:
+                matched_amount += nwr_pension_dict[new_ppo]
+                if basic_pay < nwr_pension_dict[new_ppo]:
+                    under_payment_count += 1
+                    under_payment_amount += (nwr_pension_dict[new_ppo] - basic_pay)
+                elif basic_pay > nwr_pension_dict[old_ppo]:
+                    over_payment_count += 1
+                    over_payment_amount += (basic_pay - nwr_pension_dict[old_ppo])
+            
         else:
-            unmatched_count += 1  
+            unmatched_count += 1
+            unmatched_amount += basic_pay  # Since it's not in nwr, we sum the ds amount
+    print(linked_amount,"linked_amount count")
+    print(unmatched_count,"unmatched count")
    
     response_data = {
             "success": "true",
@@ -246,7 +301,9 @@ def overall_payment(month):
                 "overpayment_count": over_payment_count,
                 "overpayment_amount": over_payment_amount,
                 "underpayment_count": under_payment_count,
-                "underpayment_amount": under_payment_amount
+                "underpayment_amount": under_payment_amount,
+                "unlinked_amount": unmatched_amount,
+                "linked_amount": linked_amount,
                 }
             }
         }
