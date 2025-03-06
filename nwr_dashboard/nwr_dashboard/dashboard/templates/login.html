@@ -22,10 +22,11 @@
             display: flex;
             width: 100%;
         }
-
+        {% load static %}
         .left-section {
             flex: 1;
-            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('train.jpg');
+            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), 
+                    url("{% static 'images/train.png' %}");
             background-size: cover;
             background-position: center;
             color: white;
@@ -166,10 +167,11 @@
             <h1>NWR<br>Pension Portal</h1>
         </div>
         <div class="right-section">
-            <img src="railway-logo.png" alt="Railway Logo" class="logo">
+            {% load static %}
+            <img src="{% static 'images/rail_logo.png' %}" alt="Railway Logo" class="logo">
             <div class="form-container">
                 <h2>Log in to your Account</h2>
-                <p class="subtitle">Today is a new day. It's your day. You shape it.<br>Sign in to start managing your projects.</p>
+               
                 
                 <form id="loginForm">
                     <div class="form-group">

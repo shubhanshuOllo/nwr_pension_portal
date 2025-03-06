@@ -426,8 +426,8 @@ def debit_scroll(request):
                         # Perform bulk insert
                         if to_insert:
                             DebitScroll.objects.bulk_create(to_insert)
-                           
- 
+                return JsonResponse({'status': 'success'}, status=200)        
+
             except Exception as e:
                 print("❌ Critical Error:", e)    
  
