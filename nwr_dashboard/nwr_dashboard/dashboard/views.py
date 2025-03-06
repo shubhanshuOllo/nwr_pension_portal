@@ -456,9 +456,12 @@ def get_rule(request):
        
         data = age_metrics(month)
     if rule == "3":  
-        
         data = family_pension_conversion(month)
-    if rule == "4":
+    if rule == "4":  
+        data = revised_pensioners(month)
+        # data={"Success":"true"}
+        return JsonResponse(data, safe=False)
+    if rule == "5":
         data=get_pension_stats_last_6_months()
 
     return JsonResponse(data, safe=False)

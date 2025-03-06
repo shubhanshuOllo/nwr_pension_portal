@@ -172,6 +172,7 @@ def age_metrics(month):
     response_data = {
             "success": "true",
             "data": {
+                "rule_no": 2,
                 "total_amt": total_80_plus_pension,
                 "total_pensioners": total_80_plus_count,
                 "rule_data": age_groups
@@ -237,6 +238,7 @@ def overall_payment(month):
     response_data = {
             "success": "true",
             "data": {
+                "rule_no": 1,
                 "rule_data": {
                 "matched_records": matched_count,
                 "basic_pay_mismatch_count": basic_pay_mismatch,
@@ -274,14 +276,63 @@ def family_pension_conversion(month):
     response_data = {
             "success": "true",
             "data": {
-            "rule_data": {
-            "regular_pension_count": regular_pension_count,
-            "family_pension_count": family_pension_count,
-            "regular_pension_amount": regular_pension_amount,
-            "family_pension_amount": family_pension_amount, 
-            }
+                "rule_no": 3,
+                "rule_data": {
+                "regular_pension_count": regular_pension_count,
+                "family_pension_count": family_pension_count,
+                "regular_pension_amount": regular_pension_amount,
+                "family_pension_amount": family_pension_amount, 
+                }
             }
         }
 
     
     return response_data
+
+def revised_pensioners(month):
+    
+    zone_data_list = list(nwr_zone_data.objects.all()) 
+    master_data_list = list(NWRMasterData.objects.all())
+
+    data = {"old": 0, "new": 0, "unmatched": 0, "total": len(master_data_list)}
+
+    old_ppo_set, new_ppo_set = set(), set()
+    for obj in zone_data_list:
+        old_ppo_set.add(obj.old_ppo)
+        new_ppo_set.add(obj.new_ppo)
+
+    for obj in master_data_list:
+        ppo = obj.ppo_number
+
+
+        if ppo in new_ppo_set:  
+            data["new"] += 1  
+        elif ppo in old_ppo_set:  
+            data["old"] += 1  
+        else:  
+            data["unmatched"] += 1  
+
+    
+    
+    response_data = {
+            "success": "true",
+            "data": {
+            "rule_no": 4,
+            "rule_data": {
+                "new": data["new"],
+                "old": data["old"],
+                "unmatched": data["unmatched"],
+                "total": data["total"], 
+                }
+            }
+        }
+    return(response_data)
+
+    # # Print results
+    # print(f"Total Pensioners: {total}")
+    # print(f"UNmatched PPO : {unmatched}")
+    # print(f"New PPO Matches: {new_ppo_match_count}")
+    # print(f"Old PPO Matches: {old_ppo_match_count}")
+
+
+    
