@@ -58,3 +58,42 @@ class NWRMasterData(models.Model):
 
     class Meta:
         db_table = 'nwr_master_data'
+
+
+class mismatch_data(models.Model):
+    arpan_ppo_number = models.CharField(max_length=20)
+    ifsc_code = models.CharField(max_length=20)
+    scroll_pension_type = models.CharField(max_length=10)
+    arpan_pension_type = models.CharField(max_length=10)
+    ppo_number = models.CharField(max_length=20)
+    pensioner_name = models.CharField(max_length=255)
+    scroll_acc_no = models.CharField(max_length=20)
+    cessation_date = models.DateField()
+    arpan_basic = models.IntegerField()
+    scroll_basic = models.IntegerField()
+    basic_diff = models.IntegerField()
+    month = models.CharField(max_length=45)
+
+    def __str__(self):
+        return self.pensioner_name
+    
+    class Meta:
+        db_table = "mismatch_data"
+
+
+
+
+class arpan_exception(models.Model):
+    debit_zone_code = models.CharField(max_length=50)  # Debit Zone Code
+    debit_zone = models.CharField(max_length=100)      # Debit Zone
+    bank_code = models.CharField(max_length=50)        # Bank Code
+    scroll_ppo_no = models.CharField(max_length=50)    # Scroll PPO No
+    account_number = models.CharField(max_length=50)   # Account Number
+    pensioner_name = models.CharField(max_length=255)  # Pensioner Name
+    ifsc_code = models.CharField(max_length=20)        # IFSC Code
+
+    class Meta:
+        db_table = "arpan_exception"  # Explicitly setting the DB table name
+
+    def __str__(self):
+        return f"{self.pensioner_name} - {self.scroll_ppo_no}"
