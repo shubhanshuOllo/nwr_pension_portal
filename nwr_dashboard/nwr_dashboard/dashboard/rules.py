@@ -181,134 +181,183 @@ def age_metrics(month):
 
     return response_data
 
-
 def overall_payment(month):
     
+    mismatch_data_filter = mismatch_data.objects.filter(month__endswith=str(month))
     filtered_ds = DebitScroll.objects.filter(pension_month__endswith=str(month))
-    
+    unlinked_accounts = arpan_exception.objects.all()
 
     
-    ds_data = filtered_ds.values_list('old_ppo', 'new_ppo', 'basic_pension')
-
-    
-    ds_dict = {}
-    for old_ppo, new_ppo, basic_pay in ds_data:
-        if old_ppo:
-            ds_dict[old_ppo] = basic_pay
-        if new_ppo:
-            ds_dict[new_ppo] = basic_pay
-
-  
-    nwr_data = nwr_zone_data.objects.values('old_ppo', 'new_ppo', 'pension_amount', 'efp_amount')
-
-   
+    mismatch_data_final = mismatch_data_filter.values_list('basic_diff', flat=True)
 
     under_payment_count = 0
     under_payment_amount = 0
     over_payment_count = 0
     over_payment_amount = 0
-    matched_count = 0
-    unmatched_count = 0
-    basic_pay_mismatch = 0
-    linked_amount = 0  # Total pension amount for linked accounts
-   
 
-    # for record in nwr_data:
-    #     old_ppo = record['old_ppo']
-    #     new_ppo = record['new_ppo']
-    #     pension_amount = record['pension_amount'] if record['pension_amount'] is not None else record['efp_amount']
+    for basic_diff in mismatch_data_final:
+        if basic_diff > 0:
+            over_payment_count += 1
+            over_payment_amount += basic_diff
+        elif basic_diff < 0:
+            under_payment_count += 1
+            under_payment_amount += abs(basic_diff)  
 
-     
-    #     basic_pay = ds_dict.get(old_ppo) or ds_dict.get(new_ppo)
-
-    #     if basic_pay is not None:  
-    #         matched_count += 1
-    #         if pension_amount and type(pension_amount) == int:
-    #             linked_amount += pension_amount
-
-    #         if basic_pay != pension_amount:
-    #             basic_pay_mismatch += 1
-    #         if basic_pay > pension_amount:
-               
-    #             over_payment_count += 1
-    #             over_payment_amount += (basic_pay - pension_amount)
-    #         elif basic_pay < pension_amount:
-     
-    #             under_payment_count += 1
-    #             under_payment_amount += (pension_amount - basic_pay)
-    #     else:
-    #         unmatched_count += 1  
-    #         if basic_pay:
-    #             unlinked_amount += basic_pay
-    nwr_ppo_set = set()
-    nwr_pension_dict = {}
+    
+    matched_count = mismatch_data_filter.filter(scroll_basic__gt=0).count()
+    unmatched_count = mismatch_data_filter.filter(scroll_basic=0).count()
   
-    for record in nwr_data:
-        old_ppo = record['old_ppo']
-        new_ppo = record['new_ppo']
-        pension_amount = record['pension_amount'] if record['pension_amount'] is not None else record['efp_amount']
+    # print(len(unlinked_accounts))
 
-        if old_ppo:
-            nwr_ppo_set.add(old_ppo)
-            nwr_pension_dict[old_ppo] = pension_amount
-        if new_ppo:
-            nwr_ppo_set.add(new_ppo)
-            nwr_pension_dict[new_ppo] = pension_amount
-
-        # Initialize counts and totals
-    matched_count = 0
-    unmatched_count = 0
-    matched_amount = 0
-    unmatched_amount = 0
-
-    # Loop through ds_data and check if PPO numbers exist in nwr_data
-    for old_ppo, new_ppo, basic_pay in ds_data:
-        if old_ppo in nwr_ppo_set or new_ppo in nwr_ppo_set or old_ppo in nwr_ppo_set:
-            matched_count += 1
-            linked_amount += basic_pay
-            
-            if old_ppo in nwr_pension_dict:
-                matched_amount += nwr_pension_dict[old_ppo]
-                if basic_pay < nwr_pension_dict[old_ppo]:
-                    under_payment_count += 1
-                    under_payment_amount += (nwr_pension_dict[old_ppo] - basic_pay)
-                elif basic_pay > nwr_pension_dict[old_ppo]:
-                    over_payment_count += 1
-                    over_payment_amount += (basic_pay - nwr_pension_dict[old_ppo])
-            elif new_ppo in nwr_pension_dict:
-                matched_amount += nwr_pension_dict[new_ppo]
-                if basic_pay < nwr_pension_dict[new_ppo]:
-                    under_payment_count += 1
-                    under_payment_amount += (nwr_pension_dict[new_ppo] - basic_pay)
-                elif basic_pay > nwr_pension_dict[old_ppo]:
-                    over_payment_count += 1
-                    over_payment_amount += (basic_pay - nwr_pension_dict[old_ppo])
-            
-        else:
-            unmatched_count += 1
-            unmatched_amount += basic_pay  # Since it's not in nwr, we sum the ds amount
-    print(linked_amount,"linked_amount count")
-    print(unmatched_count,"unmatched count")
-   
+    
     response_data = {
             "success": "true",
             "data": {
                 "rule_no": 1,
                 "rule_data": {
-                "matched_records": matched_count,
-                "basic_pay_mismatch_count": basic_pay_mismatch,
-                "unlinked_records": len(ds_data)-matched_count,
+                "matched_records": len(filtered_ds)- len(unlinked_accounts),
+                "basic_pay_mismatch_count": len(mismatch_data_final),
+                "unlinked_records": len(unlinked_accounts),
                 "overpayment_count": over_payment_count,
                 "overpayment_amount": over_payment_amount,
                 "underpayment_count": under_payment_count,
                 "underpayment_amount": under_payment_amount,
-                "unlinked_amount": unmatched_amount,
-                "linked_amount": linked_amount,
+               
+                
                 }
             }
         }
 
     return response_data
+
+
+# def overall_payment(month):
+    
+#     filtered_ds = DebitScroll.objects.filter(pension_month__endswith=str(month))
+    
+
+    
+#     ds_data = filtered_ds.values_list('old_ppo', 'new_ppo', 'basic_pension')
+
+    
+#     ds_dict = {}
+#     for old_ppo, new_ppo, basic_pay in ds_data:
+#         if old_ppo:
+#             ds_dict[old_ppo] = basic_pay
+#         if new_ppo:
+#             ds_dict[new_ppo] = basic_pay
+
+  
+#     nwr_data = nwr_zone_data.objects.values('old_ppo', 'new_ppo', 'pension_amount', 'efp_amount')
+
+   
+
+#     under_payment_count = 0
+#     under_payment_amount = 0
+#     over_payment_count = 0
+#     over_payment_amount = 0
+#     matched_count = 0
+#     unmatched_count = 0
+#     basic_pay_mismatch = 0
+#     linked_amount = 0  # Total pension amount for linked accounts
+   
+
+#     # for record in nwr_data:
+#     #     old_ppo = record['old_ppo']
+#     #     new_ppo = record['new_ppo']
+#     #     pension_amount = record['pension_amount'] if record['pension_amount'] is not None else record['efp_amount']
+
+     
+#     #     basic_pay = ds_dict.get(old_ppo) or ds_dict.get(new_ppo)
+
+#     #     if basic_pay is not None:  
+#     #         matched_count += 1
+#     #         if pension_amount and type(pension_amount) == int:
+#     #             linked_amount += pension_amount
+
+#     #         if basic_pay != pension_amount:
+#     #             basic_pay_mismatch += 1
+#     #         if basic_pay > pension_amount:
+               
+#     #             over_payment_count += 1
+#     #             over_payment_amount += (basic_pay - pension_amount)
+#     #         elif basic_pay < pension_amount:
+     
+#     #             under_payment_count += 1
+#     #             under_payment_amount += (pension_amount - basic_pay)
+#     #     else:
+#     #         unmatched_count += 1  
+#     #         if basic_pay:
+#     #             unlinked_amount += basic_pay
+#     nwr_ppo_set = set()
+#     nwr_pension_dict = {}
+  
+#     for record in nwr_data:
+#         old_ppo = record['old_ppo']
+#         new_ppo = record['new_ppo']
+#         pension_amount = record['pension_amount'] if record['pension_amount'] is not None else record['efp_amount']
+
+#         if old_ppo:
+#             nwr_ppo_set.add(old_ppo)
+#             nwr_pension_dict[old_ppo] = pension_amount
+#         if new_ppo:
+#             nwr_ppo_set.add(new_ppo)
+#             nwr_pension_dict[new_ppo] = pension_amount
+
+#         # Initialize counts and totals
+#     matched_count = 0
+#     unmatched_count = 0
+#     matched_amount = 0
+#     unmatched_amount = 0
+
+#     # Loop through ds_data and check if PPO numbers exist in nwr_data
+#     for old_ppo, new_ppo, basic_pay in ds_data:
+#         if old_ppo in nwr_ppo_set or new_ppo in nwr_ppo_set or old_ppo in nwr_ppo_set:
+#             matched_count += 1
+#             linked_amount += basic_pay
+            
+#             if old_ppo in nwr_pension_dict:
+#                 matched_amount += nwr_pension_dict[old_ppo]
+#                 if basic_pay < nwr_pension_dict[old_ppo]:
+#                     under_payment_count += 1
+#                     under_payment_amount += (nwr_pension_dict[old_ppo] - basic_pay)
+#                 elif basic_pay > nwr_pension_dict[old_ppo]:
+#                     over_payment_count += 1
+#                     over_payment_amount += (basic_pay - nwr_pension_dict[old_ppo])
+#             elif new_ppo in nwr_pension_dict:
+#                 matched_amount += nwr_pension_dict[new_ppo]
+#                 if basic_pay < nwr_pension_dict[new_ppo]:
+#                     under_payment_count += 1
+#                     under_payment_amount += (nwr_pension_dict[new_ppo] - basic_pay)
+#                 elif basic_pay > nwr_pension_dict[old_ppo]:
+#                     over_payment_count += 1
+#                     over_payment_amount += (basic_pay - nwr_pension_dict[old_ppo])
+            
+#         else:
+#             unmatched_count += 1
+#             unmatched_amount += basic_pay  # Since it's not in nwr, we sum the ds amount
+#     print(linked_amount,"linked_amount count")
+#     print(unmatched_count,"unmatched count")
+   
+#     response_data = {
+#             "success": "true",
+#             "data": {
+#                 "rule_no": 1,
+#                 "rule_data": {
+#                 "matched_records": matched_count,
+#                 "basic_pay_mismatch_count": basic_pay_mismatch,
+#                 "unlinked_records": len(ds_data)-matched_count,
+#                 "overpayment_count": over_payment_count,
+#                 "overpayment_amount": over_payment_amount,
+#                 "underpayment_count": under_payment_count,
+#                 "underpayment_amount": under_payment_amount,
+#                 "unlinked_amount": unmatched_amount,
+#                 "linked_amount": linked_amount,
+#                 }
+#             }
+#         }
+
+#     return response_data
     
 
 def family_pension_conversion(month):

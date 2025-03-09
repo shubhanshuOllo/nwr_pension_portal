@@ -12,4 +12,6 @@ urlpatterns = [
     path('upload_debit_zone/', views.debit_scroll, name='debit_scroll'),
     path('get_rule/', views.get_rule, name='get_rule'),
     path('dash/', views.dashboard, name='dashboard'),
+    path('upload-mismatch/', views.upload_mismatch, name='upload_mismatch'),
+    path('mismatch/', views.load_mismatch_page, name='mismatch_page'),
 ]

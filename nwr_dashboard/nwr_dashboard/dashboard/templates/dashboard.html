@@ -1685,45 +1685,50 @@
                         }
                     });
 
-                    // Rule 1: Create pie chart for case distribution
+                   
                     pieChart = new Chart(pieCtx, {
-                        type: 'pie',
+                        type: 'doughnut',
                         data: {
-                            labels: ['Matched Records', 'Unlinked Records', 'Overpayment Cases', 'Underpayment Cases'],
-                            datasets: [{
-                                data: [
-                                    ruleData.matched_records,
-                                    ruleData.unlinked_records,
-                                    ruleData.overpayment_count,
-                                    ruleData.underpayment_count
-                                ],
-                                backgroundColor: [
-                                    '#6B5EFF',
-                                    '#36A2EB',
-                                    '#FF6384',
-                                    '#4BC0C0'
-                                ],
-                                borderColor: '#FFFFFF',
-                                borderWidth: 2
-                            }]
+                            labels: ['Unlinked Records', 'Matched - No Issue', 'Overpayment Cases', 'Underpayment Cases'],
+                            datasets: [
+                                // First Layer - Main Categories
+                                {
+                                    data: [
+                                        ruleData.unlinked_records,  // Unlinked records
+                                        ruleData.matched_records,   // Total Matched records
+                                    ],
+                                    backgroundColor: ['#36A2EB', '#6B5EFF'],
+                                    borderColor: '#FFFFFF',
+                                    borderWidth: 2
+                                },
+                                // Second Layer - Breakdown of Matched Records
+                                {
+                                    data: [
+                                        ruleData.unlinked_records,  // Keep same as outer layer to align visually
+                                        ruleData.matched_records - ruleData.overpayment_count - ruleData.underpayment_count,  // Matched No Issue
+                                        ruleData.overpayment_count, 
+                                        ruleData.underpayment_count
+                                    ],
+                                    backgroundColor: ['#00000000', '#6B5EFF', '#FF6384', '#4BC0C0'],  // Transparent for Unlinked
+                                    borderColor: '#FFFFFF',
+                                    borderWidth: 2
+                                }
+                            ]
                         },
                         options: {
                             responsive: true,
                             maintainAspectRatio: false,
+                            cutout: '50%',  // Adjust inner hole size for clarity
                             plugins: {
                                 legend: {
                                     position: 'bottom'
                                 },
-                                title: {
-                                    display: true,
-                                    text: 'Distribution of Cases'
-                                },
                                 tooltip: {
                                     callbacks: {
                                         label: function(context) {
-                                            const value = context.raw;
-                                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                            const percentage = ((value / total) * 100).toFixed(1);
+                                            let value = context.raw;
+                                            let total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                            let percentage = ((value / total) * 100).toFixed(1);
                                             return `${value.toLocaleString()} cases (${percentage}%)`;
                                         }
                                     }
@@ -1731,6 +1736,7 @@
                             }
                         }
                     });
+                    
                 } 
                 else {
                     // Rule 2: Create line chart for age-wise distribution
@@ -1878,7 +1884,7 @@
 
                 const data = response.data;
                 const ruleData = data.rule_data;
-                const isRule1Format = ruleData.hasOwnProperty('matched_records');
+                const isRule1Format = ruleData.hasOwnProperty('basic_pay_mismatch_count');
                 const isRule3Format = ruleData.hasOwnProperty('regular_pension_count');
                 const isRule4Format = ruleData.hasOwnProperty('new');
 

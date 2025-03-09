@@ -13,7 +13,7 @@ import io
 from .rules import *
 from django.db.models import Q
 from .rules import *
-
+import re
 @csrf_exempt
 def dashboard(request):
     if not request.user.is_authenticated:
@@ -465,3 +465,93 @@ def get_rule(request):
         data=get_pension_stats_last_6_months()
 
     return JsonResponse(data, safe=False)
+
+
+
+
+def upload_mismatch(request):
+    if request.method == 'POST':
+        if 'file' in request.FILES:
+            excel_file = request.FILES['file']
+            file_name = excel_file.name.lower()
+            if file_name.endswith('.xlsx'):
+                engine = "openpyxl"  # For modern Excel files
+            elif file_name.endswith('.xls'):
+                engine = "xlrd"  # For older Excel files
+            
+            
+            
+            try:
+                # Read Excel file into a DataFrame
+                df = pd.read_excel(excel_file, engine=engine,skiprows=4, header=None)  # Read without headers
+                df = df.iloc[:, 1:] 
+
+                # Extract value from the fourth row (index 3)
+                # fourth_row_text = str(df.iloc[3, 0])  # Get first column of fourth row
+
+                # # Use regex to extract the last numeric value (202409)
+                # match = re.search(r"(\d+)$", fourth_row_text)
+                # month = match.group(1) if match else None
+
+                # print("Extracted Value:", month)  # Debugging
+                
+                # # Start DataFrame from the fifth row (index 4)
+                # df = df.iloc[5:].reset_index(drop=True)
+
+                # # Set proper column names (assuming your Excel file has correct headers)
+                # df.columns = ["ARPAN PPO Number", "IFSC Code", "Scroll Pension Type", "ARPAN Pension Type", 
+                #               "PPO Number", "Pensioner Name", "Scroll Acc No", "Cessation Date", 
+                #               "ARPAN Basic", "Scroll Basic", "Basic Diff"]
+
+                df.columns = ["debit_zone_code", "debit_zone", "bank_code", "scroll_ppo_no", 
+                          "account_number", "pensioner_name", "ifsc_code"]
+
+              
+                # df["Cessation Date"] = pd.to_datetime(df["Cessation Date"], format="%d-%m-%Y", errors="coerce")
+
+                # # Convert datetime to only date (removes time component)
+                # df["Cessation Date"] = df["Cessation Date"].apply(lambda x: x.date() if pd.notna(x) else None)
+
+
+                # Save data to the database
+                # for _, row in df.iterrows():
+                #     mismatch_data.objects.create(
+                #         arpan_ppo_number=row["ARPAN PPO Number"],
+                #         ifsc_code=row["IFSC Code"],
+                #         scroll_pension_type=row["Scroll Pension Type"],
+                #         arpan_pension_type=row["ARPAN Pension Type"],
+                #         ppo_number=row["PPO Number"],
+                #         pensioner_name=row["Pensioner Name"],
+                #         scroll_acc_no=row["Scroll Acc No"],
+                #         cessation_date=row["Cessation Date"],
+                #         arpan_basic=row["ARPAN Basic"],
+                #         scroll_basic=row["Scroll Basic"],
+                #         basic_diff=row["Basic Diff"],
+                #         month = month
+                #     )
+                records = [
+                arpan_exception(
+                    debit_zone_code=row["debit_zone_code"],
+                    debit_zone=row["debit_zone"],
+                    bank_code=row["bank_code"],
+                    scroll_ppo_no=row["scroll_ppo_no"],
+                    account_number=row["account_number"],
+                    pensioner_name=row["pensioner_name"],
+                    ifsc_code=row["ifsc_code"]
+                ) 
+                for _, row in df.iterrows()
+            ]
+            
+            # Bulk insert data into the database
+                arpan_exception.objects.bulk_create(records)
+
+                return JsonResponse({"message": "Data uploaded successfully!"}, status=201)
+
+                # return JsonResponse({'status': 'success'}, status=200)  
+
+            except Exception as e:
+                print("❌ Critical Error:", e)  
+                
+def load_mismatch_page(request):
+    """Load the mismatch.html template."""
+    return render(request, 'mismatch.html')
