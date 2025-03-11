@@ -12,8 +12,10 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 import os
+from dotenv import load_dotenv
 
-
+load_dotenv()
+db_password = os.getenv("db_password")
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -96,30 +98,30 @@ WSGI_APPLICATION = 'nwr_dashboard.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'nwr_dashboard',       # Your RDS database name
-#         'USER': 'root',       # Your RDS username
-#         'PASSWORD': 'root', # Your RDS password
-#         'HOST': 'localhost',  # Your RDS endpoint
-#         'PORT': '3306',               # Default MySQL port
-#     }
-# }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'nwr_dashboard',       # Your RDS database name
+        'USER': 'root',       # Your RDS username
+        'PASSWORD': db_password, # Your RDS password
+        'HOST': 'localhost',  # Your RDS endpoint
+        'PORT': '3306',               # Default MySQL port
+    }
+}
 
 STATICFILES_DIRS = [
     BASE_DIR /"static",  # Corrected path
 ]
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'nwr_db',       # Your RDS database name
-        'USER': 'admin',       # Your RDS username
-        'PASSWORD': 'Ollosoft123', # Your RDS password
-        'HOST': 'database-2.cpioguimmkg7.eu-north-1.rds.amazonaws.com',  # Your RDS endpoint
-        'PORT': '3306',               # Default MySQL port
-    }
-}
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'nwr_db',       # Your RDS database name
+#         'USER': 'admin',       # Your RDS username
+#         'PASSWORD': 'Ollosoft123', # Your RDS password
+#         'HOST': 'database-2.cpioguimmkg7.eu-north-1.rds.amazonaws.com',  # Your RDS endpoint
+#         'PORT': '3306',               # Default MySQL port
+#     }
+# }
 
 
 # Password validation

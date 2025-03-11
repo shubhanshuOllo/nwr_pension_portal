@@ -14,6 +14,15 @@ from .rules import *
 from django.db.models import Q
 from .rules import *
 import re
+import openai
+import json
+from decimal import Decimal
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+
 @csrf_exempt
 def dashboard(request):
     if not request.user.is_authenticated:
@@ -555,3 +564,142 @@ def upload_mismatch(request):
 def load_mismatch_page(request):
     """Load the mismatch.html template."""
     return render(request, 'mismatch.html')
+
+def is_safe_sql(query):
+    forbidden_keywords = ["INSERT", "UPDATE", "DELETE", "DROP", "ALTER", "TRUNCATE", "CREATE", "REPLACE"]
+    
+    # Remove comments to prevent bypass
+    query = re.sub(r"--.*?\n|/\*.*?\*/", "", query, flags=re.S)
+    
+    return not any(re.search(rf"\b{keyword}\b", query, re.IGNORECASE) for keyword in forbidden_keywords)
+
+
+
+
+db_prompt = """You are an expert SQL assistant for a pension management system. The database contains tables related to pensioners, debit transactions, pension mismatches, and zone data. You understand the schema and generate only safe, read-only SQL queries based on user requests. You never generate INSERT, UPDATE, DELETE, or DROP queries. The year is 2024 whenever someone does not mention the year in a query assume 2024.
+
+
+Here is the database schema:
+
+Tables and Relationships:
+Type of pension if f for family and r for regualar pension. If you use debit scroll for writing any query and the user has not provided any month then use 202409 as month.When using debit scroll for any query always set month as constraint.
+
+arpan_exception: It stores data of unlinked pensioners. Unlinked pensioners are those who are present in debit scroll but not present in nwr_zone data. So any query regarding unlinked pensioner shall be answered from this. Stores pensioner exceptions with fields like debit_zone_code, bank_code, scroll_ppo_no, account_number, and ifsc_code,pensioner_name.
+debit_scroll: Contains transaction records, including file_number, type_of_pension, new_ppo, current_pensioner, pension_month, and financial details (basic_pension, deduction, da, etc.),pension.
+mismatch_data: It stores data which has different values in nwr_zone data and debit scroll. So any query with mismatch shall be answered from this. Identifies pension mismatches based on arpan_ppo_number, ifsc_code, arpan_pension_type, scroll_pension_type, and basic_diff, month.
+nwr_master_data: Stores master pensioner data, including ppo_number, name, dob, pension_start_date, account_number, and age.
+nwr_zone_data: Maps pensioners to zones with details like ppo_zone_code, pensioner_id, old_ppo, new_ppo, emp_name, gender, cessation_date, and pension_amount,efp_amount.
+If a user specifies debit scroll only use debit scroll table instead of mapping with nwr zone data or nwr_master_data.
+Rules for SQL generation:
+
+Only generate SELECT queries.
+Allow aggregation (COUNT, SUM, AVG, etc.).
+Ensure joins and filters are optimized.
+Validate table and column names against the schema before generating queries.
+Do not assume missing information—ask for clarification if needed.
+Example queries:
+
+"How many pensioners are registered in the system?" → SELECT COUNT(*) FROM nwr_master_data;
+"Show all pensioners from a specific zone." → SELECT emp_name, new_ppo FROM nwr_zone_data WHERE ppo_zone_code = 'XYZ';
+"Get total pension amount for march." → SELECT SUM(pension) FROM debit_scroll WHERE pension_month = 202403;
+Return only the generated SQL query without extra commentary.Remove Any Extra Formatting (e.g., ```sql )"""
+
+
+
+
+
+
+api_keyy = os.getenv("OPENAI_API_KEY")
+@csrf_exempt
+def chat_completion(request):
+    data = json.loads(request.body)
+    user_query = data.get("query")
+    client = openai.OpenAI(api_key=api_keyy)
+    response = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[
+        {"role": "system", "content": db_prompt},  
+        {"role": "user", "content": user_query}  
+    ]
+)
+    
+    sql_query = response.choices[0].message.content.strip()
+    
+
+    if not is_safe_sql(sql_query):
+             return JsonResponse({"error": "Invalid query: Only read operations are allowed"}, status=400)
+    sql_error = None
+    forward_prompt = f"""You are a **Review Bot** that analyzes user queries and SQL execution results. Your goal is to:
+ Identify if the **user query** is related to pension.  
+   - If **not**, politely inform the user that only pension-related queries are supported.  
+
+ Check if the **SQL query execution** failed.  
+   - If the SQL query is incorrect, analyze the database schema and provide user with a better prompt which may help the user.  
+   - If the query contains invalid fields, suggest alternative fields.  
+
+---
+
+### **Review Process**  
+ **User Query:** _"{user_query}"_  
+ **Executed SQL Query:** _"{sql_query}"_  
+ **SQL Error (if any):** _"{sql_error}"_  
+
+### **Response Format**  
+ If the user query is valid, respond with:  
+  "Here is the requested pension information..."**  
+ If the query is NOT about pension, respond politely:  
+  **"I'm here to assist with pension-related queries only..."**   """
+    failed_query = 0
+    try:
+            with connection.cursor() as cursor:
+                cursor.execute(sql_query)
+                columns = [col[0] for col in cursor.description]
+                rows = cursor.fetchall()
+                result = [dict(zip(columns, row)) for row in rows]
+    except Exception as e:
+            sql_error = str(e)
+            response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "system", "content": forward_prompt}]
+            )
+            result = response.choices[0].message.content.strip()    
+            failed_query = 1
+            
+    if failed_query==0:
+        result = [
+        {columns[i]: (float(value) if isinstance(value, Decimal) else value) for i, value in enumerate(row)}
+        for row in rows
+        ]
+    format_prompt = f"""You are a formatting expert. Please format this data based on the user query. It should be easy to read and very presentable. Also tell some basic insights about the data. Just basic insights. Use the user query to tell user from where the data is being fetched. Dont use the word database or table. If data is being fetched from nwr_zone_table just say that data is being fetched from nwr_zone sheet or record. Do this for all the data that is being fetched. 
+    data: {result}
+    user query: "{user_query}"
+    sql query: "{sql_query}"
+    """
+    if failed_query==0:
+        if len(result) < 20:
+            response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "system", "content": format_prompt}]
+            )
+            result = response.choices[0].message.content.strip()        
+        
+    # if len(result) > 20:
+#     #     result = result[:20]
+#     chart_prompt = f"""
+#         Generate Chart.js code for the following data:
+#         {json.dumps(result)}
+#         The chart should match the user's query intent: "{user_query}"
+#         create only  pie chart code only with data from result. 
+#         Return only JavaScript code.
+#         """
+#     response = client.chat.completions.create(
+#     model="gpt-3.5-turbo",
+#     messages=[{"role": "system", "content": chart_prompt}]
+# )
+
+  
+#     chart_code = response.choices[0].message.content.strip()\
+    print(result,"result")
+
+
+    return JsonResponse({"data": result,} )

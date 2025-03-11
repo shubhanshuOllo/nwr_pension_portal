@@ -14,4 +14,5 @@ urlpatterns = [
     path('dash/', views.dashboard, name='dashboard'),
     path('upload-mismatch/', views.upload_mismatch, name='upload_mismatch'),
     path('mismatch/', views.load_mismatch_page, name='mismatch_page'),
+    path('chat_completion/', views.chat_completion, name='chat_completion'),
 ]
