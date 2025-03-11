@@ -2881,10 +2881,10 @@
 
                     // Determine the endpoint based on the modal
                     const endpoint = index === 0 
-                        ? '/dashboard/upload_debit_zone'
+                        ? '/dashboard/upload_debit_zone/'
                         : index === 1
-                        ? '/dashboard/upload_master_excel'
-                        : '/dashboard/upload_master_excel';
+                        ? '/dashboard/upload_nwr_zone/'
+                        : '/dashboard/upload_master_excel/';
 
                     $.ajax({
                         url: endpoint,
@@ -3101,22 +3101,7 @@
                     }
 
                     // Add initial bot message with the selected rule info
-                    setTimeout(() => {
-                        addMessage("Hello! I'm here to help you with: " + ruleTitle, true);
-                        setTimeout(() => {
-                            addMessage(ruleDescription, true);
-                            
-                            // If we have rule data, add the initial message and options
-                            if (ruleData && ruleData.initial_message) {
-                                setTimeout(() => {
-                                    addMessage(ruleData.initial_message, true);
-                                    if (ruleData.options) {
-                                        addOptions(ruleData.options);
-                                    }
-                                }, 500);
-                            }
-                        }, 500);
-                    }, 300);
+                  
 
                     // Close the rules section after selection
                     rulesSection.classList.remove('open');
@@ -3194,8 +3179,10 @@
             messageInput.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     const text = this.value.trim();
+                    console.log(text);  
                     if (text) {
-                        addMessage(text, false);
+                        submit_chat();
+                        
                         this.value = '';
                     }
                 }
@@ -3384,7 +3371,8 @@
                 if (e.key === 'Enter') {
                     const text = messageInput.value.trim();
                     if (text) {
-                        addMessage(text, false);
+                        submit_chat();
+                        
                         messageInput.value = '';
                     }
                 }

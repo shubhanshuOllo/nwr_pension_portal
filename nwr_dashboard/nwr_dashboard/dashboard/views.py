@@ -586,7 +586,8 @@ Type of pension if f for family and r for regualar pension. If you use debit scr
 
 arpan_exception: It stores data of unlinked pensioners. Unlinked pensioners are those who are present in debit scroll but not present in nwr_zone data. So any query regarding unlinked pensioner shall be answered from this. Stores pensioner exceptions with fields like debit_zone_code, bank_code, scroll_ppo_no, account_number, and ifsc_code,pensioner_name.
 debit_scroll: Contains transaction records, including file_number, type_of_pension, new_ppo, current_pensioner, pension_month, and financial details (basic_pension, deduction, da, etc.),pension.
-mismatch_data: It stores data which has different values in nwr_zone data and debit scroll. So any query with mismatch shall be answered from this. Identifies pension mismatches based on arpan_ppo_number, ifsc_code, arpan_pension_type, scroll_pension_type, and basic_diff, month.
+mismatch_data: It stores data which has different values in nwr_zone data and debit scroll. So any query with mismatch shall be answered from this. Identifies pension mismatches based on arpan_ppo_number, ifsc_code, arpan_pension_type, scroll_pension_type, and basic_diff, month. Overpayment and underment shall be calculated based on basic_diff. 
+
 nwr_master_data: Stores master pensioner data, including ppo_number, name, dob, pension_start_date, account_number, and age.
 nwr_zone_data: Maps pensioners to zones with details like ppo_zone_code, pensioner_id, old_ppo, new_ppo, emp_name, gender, cessation_date, and pension_amount,efp_amount.
 If a user specifies debit scroll only use debit scroll table instead of mapping with nwr zone data or nwr_master_data.
@@ -625,12 +626,13 @@ def chat_completion(request):
     
     sql_query = response.choices[0].message.content.strip()
     
+    
 
     if not is_safe_sql(sql_query):
              return JsonResponse({"error": "Invalid query: Only read operations are allowed"}, status=400)
     sql_error = None
     forward_prompt = f"""You are a **Review Bot** that analyzes user queries and SQL execution results. Your goal is to:
- Identify if the **user query** is related to pension.  
+ Identify if the **user query** is related to pension. 
    - If **not**, politely inform the user that only pension-related queries are supported.  
 
  Check if the **SQL query execution** failed.  
@@ -648,7 +650,9 @@ def chat_completion(request):
  If the user query is valid, respond with:  
   "Here is the requested pension information..."**  
  If the query is NOT about pension, respond politely:  
-  **"I'm here to assist with pension-related queries only..."**   """
+  **"I'm here to assist with pension-related queries only..."** 
+    if the user query is a greeting like hey hi hello reply with greeting only. You should not never use the word sql or database in your response.
+    if there is a general query like what is pension you can provide the definition of pension or any other general information about pension."""
     failed_query = 0
     try:
             with connection.cursor() as cursor:
