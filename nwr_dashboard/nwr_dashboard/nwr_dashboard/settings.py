@@ -98,30 +98,30 @@ WSGI_APPLICATION = 'nwr_dashboard.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'nwr_dashboard',       # Your RDS database name
-#         'USER': 'root',       # Your RDS username
-#         'PASSWORD': db_password, # Your RDS password
-#         'HOST': 'localhost',  # Your RDS endpoint
-#         'PORT': '3306',               # Default MySQL port
-#     }
-# }
+DATABASES = {
+     'default': {
+         'ENGINE': 'django.db.backends.mysql',
+         'NAME': 'nwr_db',       # Your RDS database name
+         'USER': 'root',       # Your RDS username
+         'PASSWORD': "root", # Your RDS password
+         'HOST': 'localhost',  # Your RDS endpoint
+         'PORT': '3306',               # Default MySQL port
+     }
+ }
 
 STATICFILES_DIRS = [
     BASE_DIR /"static",  # Corrected path
 ]
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'nwr_db',       # Your RDS database name
-        'USER': 'admin',       # Your RDS username
-        'PASSWORD': db_password, # Your RDS password
-        'HOST': 'database-2.cpioguimmkg7.eu-north-1.rds.amazonaws.com',  # Your RDS endpoint
-        'PORT': '3306',               # Default MySQL port
-    }
-}
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'nwr_db',       # Your RDS database name
+#         'USER': 'admin',       # Your RDS username
+#         'PASSWORD': db_password, # Your RDS password
+#         'HOST': 'database-2.cpioguimmkg7.eu-north-1.rds.amazonaws.com',  # Your RDS endpoint
+#         'PORT': '3306',               # Default MySQL port
+#     }
+# }
 
 
 # Password validation

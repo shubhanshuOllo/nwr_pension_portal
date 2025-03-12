@@ -1,5 +1,5 @@
 from django.shortcuts import render,redirect
-from django.http import JsonResponse
+from django.http import JsonResponse,HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 import pandas as pd
 from .models import NWRMasterData, nwr_zone_data,DebitScroll
@@ -19,6 +19,10 @@ import json
 from decimal import Decimal
 import os
 from dotenv import load_dotenv
+from io import BytesIO
+from openpyxl.utils.dataframe import dataframe_to_rows
+import json
+import openpyxl
 
 load_dotenv()
 
@@ -455,9 +459,7 @@ def get_rule(request):
     month = request.GET.get('month')
     rule = request.GET.get('rule', '').strip()
 
-    print(month,rule,"month and rule")
-
-
+    # print(month,rule,"month and rule")
     data = []
     if rule == "1":  
         data = overall_payment(month)
@@ -469,11 +471,18 @@ def get_rule(request):
     if rule == "4":  
         data = revised_pensioners(month)
         # data={"Success":"true"}
-        return JsonResponse(data, safe=False)
     if rule == "5":
-        data=get_pension_stats_last_6_months()
+        data=get_pension_stats_last_6_months(month)
+
+    if rule == "6":
+        data=active_pensioner(month)
+
+    if rule == "7":
+        data=get_efp_count()
 
     return JsonResponse(data, safe=False)
+
+
 
 
 
@@ -594,24 +603,44 @@ nwr_zone_data: Maps pensioners to zones with details like ppo_zone_code, pension
 If a user specifies debit scroll only use debit scroll table instead of mapping with nwr zone data or nwr_master_data.
 Rules for SQL generation:
 
-Only generate SELECT queries.
-Allow aggregation (COUNT, SUM, AVG, etc.).
-Ensure joins and filters are optimized.
-Validate table and column names against the schema before generating queries.
-Do not assume missing information—ask for clarification if needed.
+
 Example queries:
 
 "How many pensioners are registered in the system?" → SELECT COUNT(*) FROM nwr_master_data;
 "Show all pensioners from a specific zone." → SELECT emp_name, new_ppo FROM nwr_zone_data WHERE ppo_zone_code = 'XYZ';
 "Get total pension amount for march." → SELECT SUM(pension) FROM debit_scroll WHERE pension_month = 202403;
-Return only the generated SQL query without extra commentary.Remove Any Extra Formatting (e.g., ```sql )"""
+Return only the generated SQL query without extra commentary.Remove Any Extra Formatting (e.g., ```sql )
+"Show all pensioners who are more than 80 years of age." → WITH matched_pensioners AS (
+    SELECT
+        ds.file_number,
+        COALESCE(md1.age, md2.age) AS age
+    FROM debit_scroll ds
+    LEFT JOIN nwr_master_data md1 ON ds.old_ppo = md1.ppo_number
+    LEFT JOIN nwr_master_data md2 ON ds.new_ppo = md2.ppo_number
+    WHERE ds.pension_month = '202409'
+    AND COALESCE(md1.age, md2.age) IS NOT NULL
+    GROUP BY ds.file_number, age
+)
+SELECT COUNT(*) AS total_80_85_pensioners
+FROM matched_pensioners
+WHERE age >= 80 ;
 
+
+
+Only generate SELECT queries.
+Allow aggregation (COUNT, SUM, AVG, etc.).
+Ensure joins and filters are optimized.
+Validate table and column names against the schema before generating queries.
+Do not assume missing information—ask for clarification if needed.
+only return sql query no need to return anything apart from it do not even add the keyword sql before it just return the query
+"""
 
 
 
 
 
 api_keyy = os.getenv("OPENAI_API_KEY")
+@login_required
 @csrf_exempt
 def chat_completion(request):
     data = json.loads(request.body)
@@ -709,3 +738,139 @@ def chat_completion(request):
 
 
     return JsonResponse({"data": result,} )
+
+@login_required
+def generate_excl(request):
+
+
+    rule_json = request.GET.get('rule_data')
+    month = request.GET.get('month')
+    year = 2024 #static year
+    month = str(month).zfill(2)
+    prev_year = str(year)
+
+    if month == "01":
+        prev_month = "12"
+        prev_year = str(int(year) - 1)
+
+
+    curr_pension_month = f"{year}{month}"
+
+
+    print(curr_pension_month)
+
+    
+    try:
+        rule_data = json.loads(rule_json)
+    except json.JSONDecodeError:
+        return HttpResponse("Invalid JSON", status=400)
+
+    
+    wb = openpyxl.Workbook()
+    ws = wb.active
+
+    
+    rule = 2  
+    if isinstance(rule_data, dict):
+        rule_data = [rule_data]
+
+    if not isinstance(rule_data, list) or not rule_data or not isinstance(rule_data[0], dict):
+        return HttpResponse("Invalid data format", status=400)
+
+    if 'matched_records' in rule_json:
+        rule = 1
+    elif 'regular_pension_count' in rule_json:
+        rule = 3
+    elif 'stats' in rule_json:
+        rule = 5
+    elif 'new' in rule_json:
+        rule = 4
+
+
+
+
+    
+
+    if rule == 1:
+        headers = list(rule_data[0].keys())
+
+        ws.title = "Exported Data"
+
+        ws.append(headers)
+
+        for item in rule_data:
+            row = [item.get(col, "") for col in headers]
+            ws.append(row)
+
+        unlink_sheet = wb.create_sheet(title="UNLINKED RECORDS")
+        underpayment_sheet = wb.create_sheet(title="UNDERPAYMENT RECORDS")
+        overpayment_sheet = wb.create_sheet(title="OVERPAYMENT RECORDS")
+        
+        query = """
+            SELECT e.*, md.* 
+            FROM arpan_exception AS e 
+            left JOIN nwr_master_data AS md 
+            ON md.ppo_number = e.scroll_ppo_no
+        """
+        with connection.cursor() as cursor:
+            cursor.execute(query)
+            columns = [col[0] for col in cursor.description]
+            results = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+        unlink_df = pd.DataFrame(results)
+        unlink_df = unlink_df.fillna('')
+
+        # Underpayment Query
+        query_underpayment = """
+            SELECT e.*, md.* 
+            FROM mismatch_data AS e  
+            LEFT JOIN nwr_master_data AS md 
+            ON md.ppo_number = e.ppo_number 
+            WHERE e.basic_diff < 0 AND e.month = %s
+        """
+        with connection.cursor() as cursor:
+            cursor.execute(query_underpayment, [curr_pension_month])
+            columns = [col[0] for col in cursor.description]
+            underpayment_results = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+        underpayment_results_df = pd.DataFrame(underpayment_results)
+        underpayment_results_df = underpayment_results_df.fillna('')
+       
+
+        # Overpayment Query (Fixing the basic_diff condition)
+        query_overpayment = """
+            SELECT e.*, md.* 
+            FROM mismatch_data AS e  
+            LEFT JOIN nwr_master_data AS md 
+            ON md.ppo_number = e.ppo_number 
+            WHERE e.basic_diff > 0 AND e.month = %s
+        """
+        with connection.cursor() as cursor:
+            cursor.execute(query_overpayment, [curr_pension_month])
+            columns = [col[0] for col in cursor.description]
+            overpayment_results = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+        
+        overpayment_results_df = pd.DataFrame(overpayment_results)
+        overpayment_results_df = overpayment_results_df.fillna('')
+
+        insert_df_into_sheet(unlink_df, unlink_sheet)
+        insert_df_into_sheet(underpayment_results_df, underpayment_sheet)
+        insert_df_into_sheet(overpayment_results_df, overpayment_sheet)
+
+    excel_stream = BytesIO()
+    wb.save(excel_stream)
+    excel_stream.seek(0)
+
+    response = HttpResponse(
+        excel_stream.read(),
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    response['Content-Disposition'] = 'attachment; filename="exported_data.xlsx"'
+    return response
+
+def insert_df_into_sheet(df, sheet):
+    if not df.empty:
+        for r_idx, row in enumerate(dataframe_to_rows(df, index=False, header=True), start=1):
+            for c_idx, value in enumerate(row, start=1):
+                sheet.cell(row=r_idx, column=c_idx, value=value)
