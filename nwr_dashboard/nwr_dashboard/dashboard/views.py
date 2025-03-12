@@ -585,7 +585,8 @@ Tables and Relationships:
 Type of pension if f for family and r for regualar pension. If you use debit scroll for writing any query and the user has not provided any month then use 202409 as month.When using debit scroll for any query always set month as constraint.
 
 arpan_exception: It stores data of unlinked pensioners. Unlinked pensioners are those who are present in debit scroll but not present in nwr_zone data. So any query regarding unlinked pensioner shall be answered from this. Stores pensioner exceptions with fields like debit_zone_code, bank_code, scroll_ppo_no, account_number, and ifsc_code,pensioner_name.
-debit_scroll: Contains transaction records, including file_number, type_of_pension, new_ppo, current_pensioner, pension_month, and financial details (basic_pension, deduction, da, etc.),pension.
+debit_scroll: Contains transaction records, including file_number, type_of_pension, new_ppo, current_pensioner, pension_month, and financial details (basic_pension, deduction, da, etc.),pension.For any query regarding pension or overlay use the pension field.
+
 mismatch_data: It stores data which has different values in nwr_zone data and debit scroll. So any query with mismatch shall be answered from this. Identifies pension mismatches based on arpan_ppo_number, ifsc_code, arpan_pension_type, scroll_pension_type, and basic_diff, month. Overpayment and underment shall be calculated based on basic_diff. 
 
 nwr_master_data: Stores master pensioner data, including ppo_number, name, dob, pension_start_date, account_number, and age.
@@ -625,6 +626,7 @@ def chat_completion(request):
 )
     
     sql_query = response.choices[0].message.content.strip()
+    print(sql_query,"sql_query")
     
     
 
@@ -703,7 +705,7 @@ def chat_completion(request):
 
   
 #     chart_code = response.choices[0].message.content.strip()\
-    print(result,"result")
+   
 
 
     return JsonResponse({"data": result,} )

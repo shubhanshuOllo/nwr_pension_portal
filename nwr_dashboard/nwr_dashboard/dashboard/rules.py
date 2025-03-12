@@ -122,7 +122,7 @@ def get_pension_stats_last_6_months():
 #     return  total_eighty,age_groups, total_outlay
 
 def age_metrics(month):
-    filtered_ds = DebitScroll.objects.filter(pension_month__endswith=str(month))
+    filtered_ds = DebitScroll.objects.filter(pension_month=f"20240{month}")
     ds_data = filtered_ds.values_list('old_ppo', 'new_ppo', 'pension')
     ppo_numbers = {old for old, new, _ in ds_data if old} 
     ppo_numbers.update({new for old, new, _ in ds_data if new}) 
@@ -184,7 +184,7 @@ def age_metrics(month):
 def overall_payment(month):
     
     mismatch_data_filter = mismatch_data.objects.filter(month__endswith=str(month))
-    filtered_ds = DebitScroll.objects.filter(pension_month__endswith=str(month))
+    filtered_ds = DebitScroll.objects.filter(pension_month=f"20240{month}")
     unlinked_accounts = arpan_exception.objects.all()
 
     
@@ -361,7 +361,8 @@ def overall_payment(month):
     
 
 def family_pension_conversion(month):
-    filtered_ds = DebitScroll.objects.filter(pension_month__endswith=str(month))
+    filtered_ds = DebitScroll.objects.filter(pension_month=f"20240{month}")
+    print(len(filtered_ds),"filtered_ds")
     
 
     
