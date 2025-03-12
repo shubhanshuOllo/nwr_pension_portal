@@ -1,0 +1,3572 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NWR Pension Portal</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Poppins", sans-serif;
+      }
+
+      :root {
+        --primary-color: #6b5eff;
+        --secondary-color: #2c3e50;
+        --background-color: #f5f6fa;
+        --card-background: #ffffff;
+      }
+
+      body {
+        background-color: var(--background-color);
+      }
+
+      /* Navbar styles */
+      .navbar {
+        background-color: white;
+        padding: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+
+      .logo-section {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+      }
+
+      .logo-section img {
+        width: 40px;
+        height: 40px;
+      }
+
+      .logo-section h1 {
+        font-size: 1.5rem;
+        font-weight: 500;
+      }
+
+      .nav-buttons {
+        display: flex;
+        gap: 1rem;
+      }
+
+      .nav-button {
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 5px;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 400;
+        background: linear-gradient(
+          90deg,
+          rgba(79, 70, 229, 1) 0%,
+          rgba(44, 39, 127, 1) 100%
+        );
+      }
+
+      /* Main content layout */
+      .main-content {
+        display: grid;
+        grid-template-columns: 1fr 460px 485px;
+        gap: 1.5rem;
+        padding: 1rem;
+        position: relative;
+      }
+
+      /* Card styles */
+      .card {
+        background-color: var(--card-background);
+        border-radius: 10px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        margin: 0; /* Remove the margin we added */
+        height: 96%;
+      }
+
+      /* Remove the border styles */
+      .card:not(:last-child)::after {
+        display: none; /* Remove the borders */
+      }
+
+      /* Chart container */
+      .chart-container {
+        width: 100%;
+        height: 250px; /* Adjusted height to accommodate both charts */
+        margin: 1rem 0;
+        position: relative;
+      }
+
+      canvas {
+        width: 100% !important;
+        height: 100% !important;
+      }
+
+      /* Dropdown styles */
+      .dropdown {
+        padding: 0.65rem 1rem; /* Adjusted padding to match button */
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        width: 140px; /* Fixed width to match design */
+        font-size: 0.9rem;
+        color: #666;
+        background-color: white;
+        cursor: pointer;
+        outline: none;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23666' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: calc(100% - 12px) center;
+        padding-right: 35px;
+      }
+
+      .dropdown:hover {
+        border-color: var(--primary-color);
+      }
+
+      /* Chatbot styles */
+      .chatbot {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+        height: 96%;
+        overflow: hidden;
+        position: relative;
+        z-index: 1;
+      }
+
+      /* Rules and Functions Section */
+      .rules-section {
+        border-bottom: 1px solid #eee;
+        padding: 12px;
+        position: relative;
+        background: white;
+        z-index: 2;
+      }
+
+      .rules-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease-out;
+      }
+
+      .rules-section.open .rules-content {
+        max-height: 300px;
+        overflow-y: auto;
+        padding: 10px 0;
+      }
+
+      .rules-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        /* margin-bottom: 12px; */
+      }
+
+      .rules-header h2 {
+        font-size: 16px;
+        font-weight: 600;
+        color: #333;
+        margin: 0;
+        cursor: default;
+      }
+
+      .toggle-button {
+        background: none;
+        border: none;
+        color: #6b5eff;
+        cursor: pointer;
+        padding: 4px;
+        transition: transform 0.3s ease;
+      }
+
+      .toggle-button i {
+        font-size: 16px;
+        transition: transform 0.3s ease;
+      }
+
+      .rules-section.open .toggle-button i {
+        transform: rotate(180deg);
+      }
+
+      .message-notifications {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .notification-item {
+        background: #fff;
+        border-radius: 8px;
+        padding: 15px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        min-height: 85px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+
+      .notification-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+      }
+
+      .notification-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+      }
+
+      .notification-header span {
+        font-weight: 500;
+        color: #333;
+      }
+
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        background: #6b5eff;
+        border-radius: 50%;
+      }
+
+      .notification-preview {
+        color: #666;
+        font-size: 0.9rem;
+        line-height: 1.4;
+        margin: 0;
+      }
+
+      .view-all {
+        color: #6b5eff;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 500;
+        text-align: center;
+        display: block;
+        margin-top: 12px;
+      }
+
+      /* Chat Interface */
+      .chat-interface {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        z-index: 1;
+        margin-top: 0;
+      }
+
+      .chat-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px;
+        border-bottom: 1px solid #eee;
+      }
+
+      .chat-header h2 {
+        font-size: 16px; /* Reduced from 18px */
+        font-weight: 600;
+        color: #333;
+        margin: 0;
+      }
+
+      .header-actions {
+        display: flex;
+        gap: 8px;
+      }
+
+      .action-button {
+        background: none;
+        border: none;
+        color: #666;
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 4px;
+        transition: background-color 0.2s;
+      }
+
+      .action-button:hover {
+        background: #f5f5f5;
+      }
+
+      .chat-messages {
+        height: calc(100vh - 328px);
+        min-height: 300px;
+        overflow-y: scroll;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        scrollbar-width: thin;
+        scrollbar-color: #6b5eff #f1f1f1;
+        position: relative;
+        z-index: 1;
+      }
+
+      /* Custom scrollbar styling for Webkit browsers */
+      .chat-messages::-webkit-scrollbar {
+        width: 6px;
+        display: block;
+      }
+
+      .chat-messages::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+      }
+
+      .chat-messages::-webkit-scrollbar-thumb {
+        background: #6b5eff;
+        border-radius: 10px;
+      }
+
+      .chat-messages::-webkit-scrollbar-thumb:hover {
+        background: #5346ff;
+      }
+
+      /* Ensure the chat container has proper layout */
+      .chat-container {
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - 200px); /* Adjust based on your layout */
+        max-height: 600px;
+      }
+
+      /* Ensure messages and options stay within the scrollable area */
+      .message {
+        padding: 10px 14px; /* Reduced from 12px 16px */
+        margin: 6px 0; /* Reduced from 8px */
+        border-radius: 10px; /* Reduced from 12px */
+        max-width: 80%;
+        word-wrap: break-word;
+        font-size: 13px; /* Added smaller font size */
+        display: flex;
+      }
+
+      .options-container {
+        margin: 16px 0;
+        padding-right: 10px; /* Add space for scrollbar */
+      }
+
+      /* Keep the input area fixed at the bottom */
+      .chat-input-container {
+        position: sticky;
+        bottom: 0;
+        background: white;
+        padding: 12px;
+        border-top: 1px solid #eee;
+        margin-top: auto;
+        display: flex;
+      }
+      .input-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: #f5f5f5;
+        border-radius: 24px;
+        padding: 8px 16px;
+        width: 100%;
+        margin: 6px;
+      }
+
+      .attachment-button,
+      .emoji-button {
+        background: none;
+        border: none;
+        color: #666;
+        cursor: pointer;
+        padding: 4px;
+        font-size: 13px;
+      }
+
+      .message-input {
+        flex: 1;
+        border: none;
+        background: none;
+        padding: 8px;
+        font-size: 13px;
+        outline: none;
+      }
+
+      .send-button {
+        background: linear-gradient(
+          90deg,
+          rgba(79, 70, 229, 1) 0%,
+          rgba(44, 39, 127, 1) 100%
+        );
+        color: #fff;
+        border: none;
+        border-radius: 24px;
+        padding: 8px 20px;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        /* margin-left: 8px; */
+        white-space: nowrap;
+        margin: 6px;
+      }
+
+      .send-button:hover {
+        background: #5a4ee6;
+      }
+
+      /* Stats section */
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+      }
+
+      .stat-card {
+        background-color: var(--card-background);
+        padding: 1rem;
+        border-radius: 8px;
+      }
+
+      .stat-value {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: var(--primary-color);
+      }
+
+      /* Upload button */
+      .upload-button {
+        background: linear-gradient(
+          90deg,
+          rgba(79, 70, 229, 1) 0%,
+          rgba(44, 39, 127, 1) 100%
+        );
+        color: white;
+        padding: 0.65rem 1rem; /* Match dropdown padding */
+        border-radius: 5px;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: background-color 0.3s;
+        white-space: nowrap; /* Prevent text wrapping */
+        min-width: 180px; /* Fixed minimum width */
+      }
+
+      .upload-button i {
+        font-size: 0.9rem; /* Match icon size with text */
+      }
+
+      .upload-button:hover {
+        background-color: #5649ff;
+      }
+
+      /* Add container for date and upload section */
+      .date-upload-container {
+        display: flex;
+        align-items: center;
+        gap: 1rem; /* Consistent spacing */
+        margin-bottom: 1.5rem;
+        justify-content: space-between;
+      }
+
+      /* Responsive styles */
+      @media screen and (max-width: 1400px) {
+        .main-content {
+          grid-template-columns: 1fr 300px 500px;
+        }
+      }
+
+      @media screen and (max-width: 1200px) {
+        .main-content {
+          grid-template-columns: 1fr 250px 400px;
+        }
+      }
+
+      @media screen and (max-width: 1024px) {
+        .main-content {
+          grid-template-columns: 1fr 1fr;
+        }
+
+        .chatbot {
+          grid-column: span 2;
+        }
+
+        .card::after {
+          display: none; /* Remove borders on smaller screens */
+        }
+      }
+
+      @media screen and (max-width: 768px) {
+        .main-content {
+          grid-template-columns: 1fr;
+          padding: 1rem;
+          gap: 1rem;
+        }
+
+        .chatbot {
+          grid-column: span 1;
+        }
+
+        .navbar {
+          flex-direction: column;
+          gap: 1rem;
+          text-align: center;
+        }
+
+        .nav-buttons {
+          flex-direction: column;
+          width: 100%;
+        }
+
+        .nav-button {
+          width: 100%;
+          justify-content: center;
+        }
+
+        .logo-section {
+          flex-direction: column;
+        }
+
+        .chart-container {
+          height: 200px; /* Smaller height for mobile */
+        }
+
+        .stats {
+          grid-template-columns: 1fr;
+        }
+
+        .date-upload-container {
+          flex-direction: column;
+          gap: 0.8rem;
+        }
+
+        .dropdown,
+        .upload-button {
+          width: 100%;
+          max-width: none;
+        }
+      }
+
+      /* Additional responsive improvements */
+      @media screen and (max-width: 480px) {
+        .card {
+          padding: 1rem;
+        }
+
+        .upload-button {
+          width: 100%;
+          justify-content: center;
+        }
+
+        .dropdown {
+          width: 100%;
+        }
+
+        .chat-input {
+          flex-direction: column;
+        }
+
+        .chat-input input {
+          width: 100%;
+        }
+
+        .send-button {
+          width: 100%;
+        }
+
+        .message {
+          max-width: 90%;
+        }
+      }
+
+      /* Update these styles for the middle column */
+      .middle-column {
+        padding: 1rem;
+        background-color: #f8f9fa;
+        height: 96%;
+      }
+
+      .expandable-section {
+        background-color: #fff;
+        border: 1px solid #eee;
+        border-radius: 12px;
+        margin-bottom: 1rem;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+      }
+
+      .header-left {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+      }
+
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+      }
+
+      .dot.linked {
+        background-color: #6b5eff;
+      }
+
+      .dot.unlinked {
+        background-color: #36a2eb;
+      }
+
+      .section-header {
+        padding: 1.2rem 1.5rem;
+        background-color: #fff;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border-bottom: 1px solid transparent;
+      }
+
+      .section-header h2 {
+        font-size: 1rem;
+        font-weight: 500;
+        color: #333;
+      }
+
+      .section-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: all 0.3s ease-out;
+        opacity: 0;
+        background-color: #fff;
+      }
+
+      .expandable-section.active .section-content {
+        max-height: 300px;
+        opacity: 1;
+        padding: 6px 26px;
+        margin-bottom: 26px;
+        max-height: fit-content !important;
+      }
+
+      .expandable-section.active .section-header {
+        border-bottom: 1px solid #eee;
+      }
+
+      .content-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.8rem 0;
+        color: #666;
+        font-size: 0.9rem;
+      }
+
+      .content-row:not(:last-child) {
+        border-bottom: 1px solid #f0f0f0;
+        padding-bottom: 0.8rem;
+      }
+
+      .content-row:last-child {
+        padding-bottom: 0;
+      }
+
+      .content-row span {
+        margin: 0;
+      }
+
+      .content-row span:first-child {
+        color: #666;
+        font-weight: 400;
+      }
+
+      .amount,
+      .percentage,
+      .cases {
+        font-weight: 500;
+        min-width: 80px;
+        text-align: right;
+      }
+
+      .arrow-icon {
+        font-size: 1.2rem;
+        color: #999;
+        transition: transform 0.3s ease;
+      }
+
+      .expandable-section.active .arrow-icon {
+        transform: rotate(180deg);
+        color: #6b5eff;
+      }
+
+      .section-header:hover {
+        background-color: #f8f9fa;
+      }
+
+      .section-header:hover .arrow-icon {
+        color: #6b5eff;
+      }
+
+      /* Typing indicator styles */
+      .typing-indicator {
+        padding: 1rem;
+        display: flex;
+        gap: 4px;
+        margin-left: 1rem;
+      }
+
+      .typing-indicator .dot {
+        width: 8px;
+        height: 8px;
+        background-color: #ccc;
+        border-radius: 50%;
+        animation: typing 1s infinite ease-in-out;
+      }
+
+      .typing-indicator .dot:nth-child(1) {
+        animation-delay: 0s;
+      }
+      .typing-indicator .dot:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+      .typing-indicator .dot:nth-child(3) {
+        animation-delay: 0.4s;
+      }
+
+      @keyframes typing {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+      }
+
+      /* Modal styles */
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .modal-content {
+        background-color: white;
+        padding: 2rem;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 500px;
+        position: relative;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      }
+
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #eee;
+      }
+
+      .modal-header h2 {
+        font-size: 1.2rem;
+        font-weight: 500;
+        color: #333;
+        margin: 0;
+      }
+
+      .modal-close {
+        background: none;
+        border: none;
+        font-size: 1.2rem;
+        color: #666;
+        cursor: pointer;
+        padding: 0.5rem;
+        transition: color 0.3s;
+      }
+
+      .modal-close:hover {
+        color: var(--primary-color);
+      }
+
+      .file-upload-container {
+        text-align: center;
+        padding: 2rem;
+        border: 2px dashed #ddd;
+        border-radius: 8px;
+        background-color: #f8f9fa;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .file-upload-container:hover {
+        border-color: var(--primary-color);
+        background-color: #f0f2ff;
+      }
+
+      .file-upload-container i {
+        font-size: 2rem;
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+      }
+
+      .file-upload-container p {
+        margin: 0;
+        color: #666;
+      }
+
+      .file-upload-input {
+        display: none;
+      }
+
+      .selected-file {
+        margin-top: 1rem;
+        padding: 0.5rem;
+        background-color: #e8e8e8;
+        border-radius: 4px;
+        display: none;
+      }
+
+      .modal-footer {
+        margin-top: 1.5rem;
+        display: flex;
+        justify-content: flex-end;
+      }
+
+      .modal-send-btn {
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        padding: 0.8rem 1.5rem;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+        opacity: 0.6;
+        pointer-events: none;
+      }
+
+      .modal-send-btn.active {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .modal-send-btn:hover {
+        background-color: #5649ff;
+        transform: translateY(-1px);
+      }
+
+      .modal-send-btn i {
+        font-size: 0.9rem;
+      }
+
+      /* Rule selector styles */
+      .rule-selector-container {
+        padding: 1rem;
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .rule-selector-label {
+        font-size: 0.9rem;
+        color: #666;
+        font-weight: 500;
+      }
+
+      .rule-selector {
+        flex: 1;
+        padding: 0.65rem 1rem;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        color: #333;
+        background-color: white;
+        cursor: pointer;
+        outline: none;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23666' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: calc(100% - 12px) center;
+        padding-right: 35px;
+      }
+
+      /* .rule-selector:hover {
+            border-color: var(--primary-color);
+        } */
+
+      /* .rule-selector:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(107, 94, 255, 0.1);
+        } */
+      .linked-content {
+        margin: -5px 0px 0px 0px;
+      }
+
+      .section-content {
+        transition: opacity 0.3s ease-out;
+      }
+
+      .expandable-section.active .section-content {
+        max-height: none !important;
+        opacity: 1;
+      }
+
+      .content-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.8rem 0;
+        border-bottom: 1px solid #f0f0f0;
+      }
+
+      .content-row:last-child {
+        border-bottom: none;
+      }
+
+      .cases {
+        color: #666;
+        margin-right: 1rem;
+      }
+
+      .amount {
+        color: var(--primary-color);
+        font-weight: 500;
+      }
+
+      .loader-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 2000;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .loader {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      .loader i {
+        color: var(--primary-color);
+        font-size: 2rem;
+        margin-bottom: 10px;
+      }
+
+      .loader p {
+        margin: 0;
+        color: #666;
+      }
+
+      .file-upload-container {
+        position: relative;
+      }
+
+      .file-upload-container.dragging {
+        border-color: var(--primary-color);
+        background-color: #f0f2ff;
+      }
+
+      .upload-progress {
+        display: none;
+        margin-top: 1rem;
+        padding: 0.5rem;
+        background-color: #f8f9fa;
+        border-radius: 4px;
+      }
+
+      .progress-bar {
+        height: 4px;
+        background-color: #eee;
+        border-radius: 2px;
+        overflow: hidden;
+        margin-top: 0.5rem;
+      }
+
+      .progress-fill {
+        height: 100%;
+        background-color: var(--primary-color);
+        width: 0%;
+        transition: width 0.3s ease;
+      }
+
+      .message-notifications {
+        background: white;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      .notification-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 0;
+        margin-bottom: 1rem;
+      }
+
+      .notification-header h3 {
+        font-size: 1.1rem;
+        color: #333;
+        font-weight: 500;
+      }
+
+      .notification-header .toggle-btn {
+        color: #6b5eff;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 1.2rem;
+      }
+
+      .message-item {
+        padding: 1rem 0;
+        border-bottom: 1px solid #f0f0f0;
+      }
+
+      .message-item:last-child {
+        border-bottom: none;
+      }
+
+      .message-sender {
+        font-weight: 500;
+        color: #333;
+        margin-bottom: 0.3rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .message-sender .status-dot {
+        width: 8px;
+        height: 8px;
+        background-color: #6b5eff;
+        border-radius: 50%;
+      }
+
+      .message-preview {
+        color: #666;
+        font-size: 0.9rem;
+        line-height: 1.4;
+      }
+
+      .view-all-link {
+        display: block;
+        text-align: center;
+        color: #6b5eff;
+        text-decoration: none;
+        padding: 0.5rem;
+        margin-top: 1rem;
+      }
+
+      .message-input-container {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: white;
+        padding: 0.8rem;
+        border-radius: 10px;
+        margin-top: 1rem;
+      }
+
+      .message-input-container .attachment-btn {
+        color: #666;
+        background: none;
+        border: none;
+        cursor: pointer;
+      }
+
+      .message-input-container input {
+        flex: 1;
+        border: none;
+        outline: none;
+        padding: 0.5rem;
+        font-size: 0.9rem;
+      }
+
+      .message-input-container .send-btn {
+        background: #6b5eff;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 5px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      /* Add messaging interface styles */
+      .message-container {
+        background: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+      }
+
+      .message-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+      }
+
+      .message-header h3 {
+        font-size: 1.1rem;
+        font-weight: 500;
+        color: #333;
+      }
+
+      .message-header .toggle-btn {
+        color: #6b5eff;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 1.2rem;
+      }
+
+      .message-item {
+        padding: 1rem 0;
+        border-bottom: 1px solid #f0f0f0;
+      }
+
+      .message-item:last-child {
+        border-bottom: none;
+      }
+
+      .message-sender {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .message-sender .status-dot {
+        width: 8px;
+        height: 8px;
+        background-color: #6b5eff;
+        border-radius: 50%;
+      }
+
+      .message-preview {
+        color: #666;
+        font-size: 0.9rem;
+        line-height: 1.4;
+      }
+
+      .view-all {
+        display: block;
+        text-align: center;
+        color: #6b5eff;
+        text-decoration: none;
+        padding: 0.8rem;
+        margin-top: 1rem;
+      }
+
+      .message-input-box {
+        background: white;
+        border-radius: 10px;
+        padding: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        margin-top: 1rem;
+      }
+
+      .message-input-box input {
+        flex: 1;
+        border: none;
+        outline: none;
+        padding: 0.5rem;
+        font-size: 0.9rem;
+      }
+
+      .message-input-box .attachment-btn,
+      .message-input-box .emoji-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #666;
+        font-size: 1.1rem;
+      }
+
+      .message-input-box .send-btn {
+        background: #6b5eff;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 5px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .rules-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease-out;
+      }
+
+      .rules-section.open .rules-content {
+        max-height: 250px; /* Adjust this value based on your content */
+      }
+
+      /* Add these new styles for messages and options */
+      .message {
+        padding: 12px 16px;
+        margin: 8px 0;
+        border-radius: 12px;
+        max-width: 80%;
+      }
+
+      .bot-message {
+        background: #f5f5f5;
+        margin-right: auto;
+      }
+
+      .user-message {
+        background: #6b5eff;
+        color: white;
+        margin-left: auto;
+        overflow-wrap: anywhere;
+      }
+
+      .message-content {
+        position: relative;
+        min-width: 30px;
+      }
+
+      .message-content p {
+        margin: 0 0 16px 0;
+      }
+
+      .message-time {
+        position: absolute;
+        bottom: -12px;
+        right: 0;
+        font-size: 12px;
+        color: #666;
+        margin-bottom: 2px;
+      }
+
+      .user-message .message-time {
+        color: rgba(255, 255, 255, 0.8);
+      }
+
+      .options-container {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin: 16px 0;
+      }
+
+      .option-button {
+        background: white;
+        border: 1px solid #6b5eff;
+        color: #6b5eff;
+        padding: 8px 16px;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-align: left;
+      }
+
+      .option-button:hover {
+        background: #6b5eff;
+        color: white;
+      }
+      /* Add these new styles for messages and options */
+      .message {
+        padding: 12px 16px;
+        margin: 8px 0;
+        border-radius: 12px;
+        max-width: 80%;
+      }
+
+      .bot-message {
+        background: #f5f5f5;
+        margin-right: auto;
+      }
+
+      .user-message {
+        background: #6b5eff;
+        color: white;
+        margin-left: auto;
+      }
+
+      .message-content {
+        position: relative;
+      }
+
+      .message-content p {
+        margin: 0 0 16px 0;
+      }
+
+      .message-time {
+        position: absolute;
+        bottom: -12px;
+        right: 0;
+        font-size: 12px;
+        color: #666;
+      }
+
+      .user-message .message-time {
+        color: rgba(255, 255, 255, 0.8);
+      }
+
+      .options-container {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin: 16px 0;
+      }
+
+      .option-button {
+        background: white;
+        border: 1px solid #6b5eff;
+        color: #6b5eff;
+        padding: 8px 16px;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-align: left;
+      }
+
+      .option-button:hover {
+        background: #6b5eff;
+        color: white;
+      }
+
+      /* Options buttons styling */
+      .options-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 10px 0;
+        padding-right: 10px;
+      }
+
+      .option-button {
+        background: #f0f2f5;
+        border: 1px solid #e4e6eb;
+        border-radius: 18px;
+        padding: 8px 16px;
+        font-size: 13px;
+        color: #333;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .option-button:hover {
+        background: #e4e6eb;
+        border-color: #ddd;
+      }
+
+      .option-button:active {
+        transform: scale(0.98);
+      }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  </head>
+  <body>
+    <nav class="navbar">
+      <div class="logo-section">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+          width="48"
+          height="48"
+          viewBox="0 0 48 48"
+          fill="none"
+        >
+          <rect width="48" height="48" fill="url(#pattern0_60_4911)"></rect>
+          <defs>
+            <pattern
+              id="pattern0_60_4911"
+              patternContentUnits="objectBoundingBox"
+              width="1"
+              height="1"
+            >
+              <use
+                xlink:href="#image0_60_4911"
+                transform="translate(-0.0027933) scale(0.00558659)"
+              ></use>
+            </pattern>
+            <image
+              id="image0_60_4911"
+              width="180"
+              height="179"
+              preserveAspectRatio="none"
+              xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAACzCAYAAAAgyDaKAAAgAElEQVR4Ae3dB7hlV5UfeNG22+6xZ3rGYfyNP/fnNB7b2MbMFHXPLQmMaKKAJosgcpORiGqCaBASoREtMqLJUTQZJGKTBUiqd19VKedcyllCoZTFGX731Xpv3V3n3Hvue7eian/fe/vcc3Y6e6+99lr/tfY+e+yxO8y8Bx7wgFP+8YMffOz/sWbN2n+6evX6f5//3Pe3atWG/2XmFe8ucHcPTNcD9f36/bl/2+vN/2lVDf68qgbvrKrBkVU1+GVVDU6pqsFlVTW4vaoGdce/26pqcGlVDU6qqsHPqmrwxX5/7pB+f+4Fa9asfejq1ev+ZLr27U69uwdaemDvvY/5+1U1WNXrzb+835/7eK83f3xVDW7qSKhdCbpLuhuravDrqhoc0e/PvaSqBg/Yd99v/L2WZu++vbsHFnrg/vc/4w9Xr1738KoavKOqBr+oqsGt24F4uxC4NCbWj6tqcHCvN/8Qk2/3OO7ugT0s6b3e/MuqanB0VQ1u2YEJeBKh39jvD76xWQz6l7uH9j7UA6tWbfjnVTV4aVUNjvs9h/vdTkzEbUR+7+Z3e01VDXYT965I23vvfcw/6vfnnr1ZeTPgbcSwq92/u6oGP6qqwVNXrdrwD3bFsb1PvVNVDe5fVYMPVdXg+q1NxC996Rn1xz52SX3kkVfU3/3uNfX73nfR4uT4y788r7755rsX/9avv6les2ZpUj3hCSfWZ5116/DvtNNuqffb79TFvDNs91W93vxhe+55/H+4TxHBrvCyVTV4cL8/9/1tKVJ88YuX1zn8+tc3LBLlu951QX40vHYviPXpTz9l5PmLX3z64jNpXv/6s+vLLruj/tGPrq3f854L62c965S631+aEFFOx/hefdPvzz1iVxjrXfgd6j/o9eb324zpjhBEx4FeUZ4jjrh4hChPOunmxfIQYRluuOGu+uEPXz9MgyPn8IIXnLaYV9s///nRySKt/L/85fX1wQefV++55/xI+q7vuxmKfOIee9T324UJY2d7taGx48+2FyEH8bz73aNEe8EFty0S2eGHX5TpdfH6S1+6Ypjmuc89bfGei+c+d1TkOPHEm0aelz/OO29T/ZSnnLRYX7RpivjUXm9+351t5He59vb7c/tsb0IOonnTm84dobNrr71rkcA+8IGNi89+97vFy/quu+6tn/rUk+tnP3uUQ++33ymLeffaa76+/fZ7lzK1XF199Z31ox61YTFftGuaGMeGa+9yhLKjv1CvN///bJaRVzSA0wz2pLSveMWZI6SGWCPPRz6yJI6cccat9R13LBEoWfvP/uzEkbxPf/rJi3n//M9PH3lmQjzxiSfWf/VXF46UI9E3v3nVYj51UzyPPfaG+n3v21g/8pHdiV3f9nrz/25Hp4Odvn2rVm3446oafLCqBncFsewo8XOeM8plEdjee68bEtgRR1yySJQXXnhb/bWvXbn428Vf/MU5I7+f8pQlgv7Qh5a4u0QXXbQkynz845eO5Lv11nvqNWuW5OkDDliaZCbYz39+3aLc3qHf+Jm8c82atX+00xPOjvgCvd78435vCbukw0CMcKltlR70VgacV/2f+MQS4V1xxR314x53wgh3JW8juAg4cLSb4pfDd7979eIzaEcZnvnMJXHlxz++buTx5ZffsRx05ILdiMgMZwRrV1UNvhQDPOsYR3vIQxY46UrKxo3LQDZW5mc+c9nio0suuX1477OfXbq3+HDzBYKPtlx33V0jj9/xjiW470lPOmnkmR8B+UFQStn74x+/ZLHcKL9jzKL6pV5v/p/NcGjve0X1evNPqqrBtR07farBQoBHHXX1cNDvued39bp1v62f/OQVIQUjXBZxkau1PcNuITL8z/+5rr7yyju3IEg3Hv3oBYImepThaU9bEkf2339JpIh0IX//9V+PIiv33lvXVpG2vnzEIxYgxLbnm+9fRRG/71HiCt+Y3FZVgw9P6NzWwemS73vfuyZoYDG29D/4wcvn1pCNHCAf2sJ6GAHEFu07+ODz4/ZIHMR16KGjz6+/fgk5UcYPfjD6DrfcckNFfGM5TGH44+/cbHeqD/iAw88ezixf/7z67tMatz6w/vs86N/uMJhvm9kX7163QOranBOdPbWiBHt3Xcn/CyNfHDV5dRrQuQAm1bOV76ypASeffati4TF2nfKKTfnLMPrvfde4JZWkByOOWbJ+vjGN55T47o5IHD1lYYaaQ46aGFyle/1tredN9IXd955b83qGW0o06ffNiX8x/sGVS7zLTdb+jalTlsc/FneA2G1hTe96Zxl18k6mAProXZ/4xtXLd4+/fRbRspnVLn33tHJFatEOUHI08ccc309N/fbLYj5rrt+V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"
+            ></image>
+          </defs>
+        </svg>
+
+        <h1>NWR Pension Portal</h1>
+      </div>
+      <div class="nav-buttons">
+        <a href="#" class="nav-button">
+          <i class="fas fa-download"></i>
+          NWR Master PPO
+        </a>
+        <a href="#" class="nav-button">
+          <i class="fas fa-bank"></i>
+          Bank's Master
+        </a>
+      </div>
+    </nav>
+
+    <div class="main-content">
+      <!-- Left Column -->
+      <div class="card">
+        <div class="date-upload-container">
+          <select
+            class="dropdown"
+            id="dateSelector"
+            onchange="initializeNotificationHandlers()"
+          >
+            <option value="5">May</option>
+            <option value="6">June</option>
+            <option value="7">July</option>
+            <option value="8">August</option>
+            <option value="9">September</option>
+          </select>
+          <button class="upload-button">
+            <i class="fas fa-upload"></i>
+            Debit Scroll Upload
+          </button>
+        </div>
+        <div class="chart-container">
+          <canvas id="lineChart"></canvas>
+        </div>
+        <div class="chart-container">
+          <canvas id="pieChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Middle Column -->
+      <div class="card middle-column" id="middleColumn">
+        <!-- Content will be dynamically inserted here -->
+        <div class="expandable-section">
+          <div class="section-header">
+            <div class="header-left">
+              <span class="dot linked"></span>
+              <h2>Matched Records</h2>
+            </div>
+            <i class="fas fa-angle-down arrow-icon"></i>
+          </div>
+          <div class="section-content">
+            <div class="linked-content">
+              <div class="content-row">
+                <span>Total Matched</span>
+                <span class="matched-records">0</span>
+              </div>
+              <div class="content-row">
+                <span>Total Unlinked</span>
+                <span class="unlinked-records">0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="expandable-section">
+          <div class="section-header">
+            <div class="header-left">
+              <span class="dot unlinked"></span>
+              <h2>Payment Analysis</h2>
+            </div>
+            <i class="fas fa-angle-down arrow-icon"></i>
+          </div>
+          <div class="section-content">
+            <div class="unlinked-content">
+              <div class="content-row">
+                <span>Overpayment Cases</span>
+                <span class="overpayment-count">0</span>
+              </div>
+              <div class="content-row">
+                <span>Overpayment Amount</span>
+                <span class="overpayment-amount">₹0</span>
+              </div>
+              <div class="content-row">
+                <span>Underpayment Cases</span>
+                <span class="underpayment-count">0</span>
+              </div>
+              <div class="content-row">
+                <span>Underpayment Amount</span>
+                <span class="underpayment-amount">₹0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column - Chatbot -->
+      <div class="chatbot">
+        <!-- Rules and Functions Section -->
+        <div class="rules-section" id="rulesSection">
+          <div class="rules-header">
+            <h2>Rules and Functions</h2>
+            <button class="toggle-button">
+              <i class="fas fa-angle-down"></i>
+            </button>
+          </div>
+          <div class="rules-content">
+            <div class="message-notifications">
+              <div class="notification-item">
+                <div class="notification-header">
+                  <span>Overall underpayment/overpayment</span>
+                  <span class="status-dot"></span>
+                </div>
+                <p class="notification-preview">
+                  Analyze and track payment discrepancies in pension
+                  disbursements
+                </p>
+              </div>
+              <div class="notification-item">
+                <div class="notification-header">
+                  <span>Age Metrics</span>
+                  <span class="status-dot"></span>
+                </div>
+                <p class="notification-preview">
+                  View and analyze age-related pension metrics and statistics
+                </p>
+              </div>
+              <div class="notification-item">
+                <div class="notification-header">
+                  <span>Family Pension Conversion</span>
+                  <span class="status-dot"></span>
+                </div>
+                <p class="notification-preview">
+                  Track and manage family pension conversion cases
+                </p>
+              </div>
+              {% comment %}
+              <div class="notification-item">
+                <div class="notification-header">
+                  <span>Pay commission revisions</span>
+                  <span class="status-dot"></span>
+                </div>
+                <p class="notification-preview">
+                  Monitor and implement pay commission revision updates
+                </p>
+              </div>
+              {% endcomment %}
+              <div class="notification-item">
+                <div class="notification-header">
+                  <span>New Pensioners</span>
+                  <span class="status-dot"></span>
+                </div>
+                <p class="notification-preview">
+                  View and process new pension applications and cases
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chat Interface -->
+        <div class="chat-interface">
+          <div class="chat-header">
+            <h2>RailBot AI</h2>
+            <div class="header-actions">
+              <button class="action-button search">
+                <i class="fas fa-search"></i>
+              </button>
+              <button class="action-button settings">
+                <i class="fas fa-cog"></i>
+              </button>
+            </div>
+          </div>
+          <div class="chat-messages" id="chatMessages">
+            <!-- Messages will be dynamically added here -->
+          </div>
+          <div class="chat-input-container">
+            <div class="input-wrapper">
+              <!-- <button class="attachment-button">
+                            <i class="fas fa-paperclip"></i>
+                        </button> -->
+              <input
+                type="text"
+                placeholder="Message to RailBot..."
+                id="chat_input"
+                class="message-input"
+              />
+              <!-- <button class="emoji-button">
+                            <i class="far fa-smile"></i>
+                        </button> -->
+            </div>
+            <button class="send-button" onclick="submit_chat()">
+              Send
+              <i class="fas fa-paper-plane"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add this HTML right before the chat input div for typing indicator -->
+    <div class="typing-indicator" style="display: none">
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </div>
+
+    <!-- Modals -->
+    <div id="debitScrollModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Upload Debit Scroll</h2>
+          <button class="modal-close"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="file-upload-container">
+          <input
+            type="file"
+            class="file-upload-input"
+            accept=".xlsx,.xls,.csv"
+          />
+          <i class="fas fa-cloud-upload-alt"></i>
+          <p>Click to upload or drag and drop</p>
+          <p class="selected-file"></p>
+        </div>
+        <div class="modal-footer">
+          <button class="modal-send-btn">
+            <i class="fas fa-paper-plane"></i>
+            Send File
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="nwrMasterModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Upload NWR Master PPO</h2>
+          <button class="modal-close"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="file-upload-container">
+          <input
+            type="file"
+            class="file-upload-input"
+            accept=".xlsx,.xls,.csv"
+          />
+          <i class="fas fa-cloud-upload-alt"></i>
+          <p>Click to upload or drag and drop</p>
+          <p class="selected-file"></p>
+        </div>
+        <div class="modal-footer">
+          <button class="modal-send-btn">
+            <i class="fas fa-paper-plane"></i>
+            Send File
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="bankMasterModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Upload Bank's Master</h2>
+          <button class="modal-close"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="file-upload-container">
+          <input
+            type="file"
+            class="file-upload-input"
+            accept=".xlsx,.xls,.csv"
+          />
+          <i class="fas fa-cloud-upload-alt"></i>
+          <p>Click to upload or drag and drop</p>
+          <p class="selected-file"></p>
+        </div>
+        <div class="modal-footer">
+          <button class="modal-send-btn">
+            <i class="fas fa-paper-plane"></i>
+            Send File
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add this before the closing </body> tag -->
+    <div class="loader-overlay">
+      <div class="loader">
+        <i class="fas fa-spinner fa-spin"></i>
+        <p>Uploading file...</p>
+      </div>
+    </div>
+
+    <script>
+      let lineChart = null;
+      let pieChart = null;
+
+      // Function to initialize charts with default data
+      function initializeDefaultCharts() {
+        return 0;
+      }
+
+      // Function to update charts with API data
+      function updateChartsWithApiData(response) {
+        try {
+          if (!response.success || !response.data) {
+            console.error("Invalid data format");
+            return;
+          }
+
+          const data = response.data;
+          const ruleData = data.rule_data;
+          const isRule1Format = ruleData.hasOwnProperty("matched_records");
+          const isRule3Format = ruleData.hasOwnProperty(
+            "regular_pension_count"
+          );
+          const isRule4Format = ruleData.hasOwnProperty("new");
+
+          const lineCtx = document.getElementById("lineChart").getContext("2d");
+          const pieCtx = document.getElementById("pieChart").getContext("2d");
+
+          // Destroy existing charts
+          if (lineChart) {
+            lineChart.destroy();
+            lineChart = null;
+          }
+          if (pieChart) {
+            pieChart.destroy();
+            pieChart = null;
+          }
+
+          if (isRule4Format) {
+            // Rule 4: Create line chart for record trends
+            lineChart = new Chart(lineCtx, {
+              type: "line",
+              data: {
+                labels: ["Revised", "Not Revised", "Unmatched", "Total"],
+                datasets: [
+                  {
+                    label: "Number of Records",
+                    data: [
+                      ruleData.new || 0,
+                      ruleData.old || 0,
+                      ruleData.unmatched || 0,
+                      ruleData.total || 0,
+                    ],
+                    borderColor: "#6B5EFF",
+                    tension: 0.4,
+                    fill: false,
+                  },
+                ],
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  title: {
+                    display: true,
+                    text: "Record Distribution",
+                  },
+                },
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    title: {
+                      display: true,
+                      text: "Number of Records",
+                    },
+                    ticks: {
+                      callback: function (value) {
+                        return value.toLocaleString();
+                      },
+                    },
+                  },
+                },
+              },
+            });
+
+            // Rule 4: Create pie chart for record distribution
+            pieChart = new Chart(pieCtx, {
+              type: "pie",
+              data: {
+                labels: ["Revised", "Not Revised"],
+                datasets: [
+                  {
+                    data: [
+                      ruleData.new || 0,
+                      ruleData.old || 0,
+                      ruleData.unmatched || 0,
+                    ],
+                    backgroundColor: ["#6B5EFF", "#36A2EB", "#FF6384"],
+                    borderColor: "#FFFFFF",
+                    borderWidth: 2,
+                  },
+                ],
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    position: "bottom",
+                  },
+                  title: {
+                    display: true,
+                    text: "Record Type Distribution",
+                  },
+                  tooltip: {
+                    callbacks: {
+                      label: function (context) {
+                        const value = context.raw || 0;
+                        const total = ruleData.total || 0;
+                        const percentage =
+                          total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                        return `${value.toLocaleString()} records (${percentage}%)`;
+                      },
+                    },
+                  },
+                },
+              },
+            });
+          } else if (isRule3Format) {
+            // Rule 3: Create line chart for pension distribution
+            lineChart = new Chart(lineCtx, {
+              type: "line",
+              data: {
+                labels: ["Regular Pension", "Family Pension"],
+                datasets: [
+                  {
+                    label: "Number of Pensioners",
+                    data: [
+                      ruleData.regular_pension_count,
+                      ruleData.family_pension_count,
+                    ],
+                    borderColor: "#6B5EFF",
+                    tension: 0.4,
+                    fill: false,
+                  },
+                  {
+                    label: "Pension Amount (₹)",
+                    data: [
+                      ruleData.regular_pension_amount,
+                      ruleData.family_pension_amount,
+                    ],
+                    borderColor: "#36A2EB",
+                    tension: 0.4,
+                    yAxisID: "y1",
+                  },
+                ],
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  title: {
+                    display: true,
+                    text: "Pension Type Distribution",
+                  },
+                  tooltip: {
+                    callbacks: {
+                      label: function (context) {
+                        const label = context.dataset.label || "";
+                        const value = context.raw;
+                        if (label.includes("Amount")) {
+                          return `${label}: ₹${value.toLocaleString()}`;
+                        }
+                        return `${label}: ${value.toLocaleString()}`;
+                      },
+                    },
+                  },
+                },
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    title: {
+                      display: true,
+                      text: "Number of Pensioners",
+                    },
+                    ticks: {
+                      callback: function (value) {
+                        return value.toLocaleString();
+                      },
+                    },
+                  },
+                  y1: {
+                    beginAtZero: true,
+                    position: "right",
+                    title: {
+                      display: true,
+                      text: "Amount (₹)",
+                    },
+                    grid: {
+                      drawOnChartArea: false,
+                    },
+                    ticks: {
+                      callback: function (value) {
+                        return "₹" + value.toLocaleString();
+                      },
+                    },
+                  },
+                },
+              },
+            });
+
+            // Rule 3: Create pie chart for pension type distribution
+            pieChart = new Chart(pieCtx, {
+              type: "pie",
+              data: {
+                labels: ["Regular Pension", "Family Pension"],
+                datasets: [
+                  {
+                    data: [
+                      ruleData.regular_pension_count,
+                      ruleData.family_pension_count,
+                    ],
+                    backgroundColor: ["#6B5EFF", "#36A2EB"],
+                    borderColor: "#FFFFFF",
+                    borderWidth: 2,
+                  },
+                ],
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    position: "bottom",
+                  },
+                  title: {
+                    display: true,
+                    text: "Distribution by Pension Type",
+                  },
+                  tooltip: {
+                    callbacks: {
+                      label: function (context) {
+                        const value = context.raw;
+                        const total = context.dataset.data.reduce(
+                          (a, b) => a + b,
+                          0
+                        );
+                        const percentage = ((value / total) * 100).toFixed(1);
+                        const amount =
+                          context.label === "Regular Pension"
+                            ? ruleData.regular_pension_amount
+                            : ruleData.family_pension_amount;
+                        return [
+                          `${value.toLocaleString()} pensioners (${percentage}%)`,
+                          `Total Amount: ₹${amount.toLocaleString()}`,
+                        ];
+                      },
+                    },
+                  },
+                },
+              },
+            });
+          } else if (isRule1Format) {
+            // Rule 1: Create line chart for payment trends
+            lineChart = new Chart(lineCtx, {
+              type: "line",
+              data: {
+                labels: ["Matched", "Unmatched", "Overpayment", "Underpayment"],
+                datasets: [
+                  {
+                    label: "Number of Cases",
+                    data: [
+                      ruleData.matched_records,
+                      ruleData.unlinked_records,
+                      ruleData.overpayment_count,
+                      ruleData.underpayment_count,
+                    ],
+                    borderColor: "#6B5EFF",
+                    tension: 0.4,
+                    fill: false,
+                  },
+                  {
+                    label: "Amount (₹)",
+                    data: [
+                      ruleData.linked_amount, // No amount for matched records
+                      ruleData.unlinked_amount, // No amount for unlinked records
+                      ruleData.overpayment_amount,
+                      ruleData.underpayment_amount,
+                    ],
+                    borderColor: "#36A2EB",
+                    tension: 0.4,
+                    fill: false,
+                    yAxisID: "y1",
+                  },
+                ],
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  title: {
+                    display: true,
+                    text: "Payment Analysis Overview",
+                  },
+                  tooltip: {
+                    callbacks: {
+                      label: function (context) {
+                        const label = context.dataset.label || "";
+                        const value = context.raw;
+                        if (label.includes("Amount")) {
+                          return value > 0
+                            ? `${label}: ₹${value.toLocaleString()}`
+                            : "";
+                        }
+                        return `${label}: ${value.toLocaleString()}`;
+                      },
+                    },
+                  },
+                },
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    title: {
+                      display: true,
+                      text: "Number of Cases",
+                    },
+                    ticks: {
+                      callback: function (value) {
+                        return value.toLocaleString();
+                      },
+                    },
+                  },
+                  y1: {
+                    beginAtZero: true,
+                    position: "right",
+                    title: {
+                      display: true,
+                      text: "Amount (₹)",
+                    },
+                    grid: {
+                      drawOnChartArea: false,
+                    },
+                    ticks: {
+                      callback: function (value) {
+                        return "₹" + value.toLocaleString();
+                      },
+                    },
+                  },
+                },
+              },
+            });
+
+            pieChart = new Chart(pieCtx, {
+              type: "doughnut",
+              data: {
+                labels: [
+                  "Unlinked Records",
+                  "Matched - No Issue",
+                  "Overpayment Cases",
+                  "Underpayment Cases",
+                ],
+                datasets: [
+                  // First Layer - Main Categories
+                  {
+                    data: [
+                      ruleData.unlinked_records, // Unlinked records
+                      ruleData.matched_records, // Total Matched records
+                    ],
+                    backgroundColor: ["#36A2EB", "#6B5EFF"],
+                    borderColor: "#FFFFFF",
+                    borderWidth: 2,
+                  },
+                  // Second Layer - Breakdown of Matched Records
+                  {
+                    data: [
+                      ruleData.unlinked_records, // Keep same as outer layer to align visually
+                      ruleData.matched_records -
+                        ruleData.overpayment_count -
+                        ruleData.underpayment_count, // Matched No Issue
+                      ruleData.overpayment_count,
+                      ruleData.underpayment_count,
+                    ],
+                    backgroundColor: [
+                      "#00000000",
+                      "#6B5EFF",
+                      "#FF6384",
+                      "#4BC0C0",
+                    ], // Transparent for Unlinked
+                    borderColor: "#FFFFFF",
+                    borderWidth: 2,
+                  },
+                ],
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: "50%", // Adjust inner hole size for clarity
+                plugins: {
+                  legend: {
+                    position: "bottom",
+                  },
+                  tooltip: {
+                    callbacks: {
+                      label: function (context) {
+                        let value = context.raw;
+                        let total = context.dataset.data.reduce(
+                          (a, b) => a + b,
+                          0
+                        );
+                        let percentage = ((value / total) * 100).toFixed(1);
+                        return `${value.toLocaleString()} cases (${percentage}%)`;
+                      },
+                    },
+                  },
+                },
+              },
+            });
+          } else {
+            // Rule 2: Create line chart for age-wise distribution
+            const ageRanges = Object.keys(ruleData).sort((a, b) => {
+              const aStart = parseInt(a.split("-")[0]);
+              const bStart = parseInt(b.split("-")[0]);
+              return aStart - bStart;
+            });
+            const pensionAmounts = ageRanges.map(
+              (range) => ruleData[range].pension
+            );
+            const pensionerCounts = ageRanges.map(
+              (range) => ruleData[range].count
+            );
+
+            lineChart = new Chart(lineCtx, {
+              type: "line",
+              data: {
+                labels: ageRanges.map((range) => `${range} years`),
+                datasets: [
+                  {
+                    label: "Pension Amount (₹)",
+                    data: pensionAmounts,
+                    borderColor: "#6B5EFF",
+                    tension: 0.4,
+                    fill: false,
+                  },
+                  {
+                    label: "Number of Pensioners",
+                    data: pensionerCounts,
+                    borderColor: "#36A2EB",
+                    tension: 0.4,
+                    fill: false,
+                    yAxisID: "y1",
+                  },
+                ],
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  title: {
+                    display: true,
+                    text: "Age-wise Pension Distribution",
+                  },
+                  tooltip: {
+                    callbacks: {
+                      label: function (context) {
+                        const label = context.dataset.label || "";
+                        const value = context.raw;
+                        if (label.includes("Amount")) {
+                          return `${label}: ₹${value.toLocaleString()}`;
+                        }
+                        return `${label}: ${value.toLocaleString()}`;
+                      },
+                    },
+                  },
+                },
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    title: {
+                      display: true,
+                      text: "Pension Amount (₹)",
+                    },
+                    ticks: {
+                      callback: function (value) {
+                        return "₹" + value.toLocaleString();
+                      },
+                    },
+                  },
+                  y1: {
+                    beginAtZero: true,
+                    position: "right",
+                    title: {
+                      display: true,
+                      text: "Number of Pensioners",
+                    },
+                    grid: {
+                      drawOnChartArea: false,
+                    },
+                    ticks: {
+                      callback: function (value) {
+                        return value.toLocaleString();
+                      },
+                    },
+                  },
+                },
+              },
+            });
+
+            // Rule 2: Create pie chart for age distribution
+            pieChart = new Chart(pieCtx, {
+              type: "pie",
+              data: {
+                labels: ageRanges.map((range) => `${range} years`),
+                datasets: [
+                  {
+                    data: pensionerCounts,
+                    backgroundColor: [
+                      "#6B5EFF",
+                      "#36A2EB",
+                      "#4BC0C0",
+                      "#FFCD56",
+                      "#FF6384",
+                    ],
+                    borderColor: "#FFFFFF",
+                    borderWidth: 2,
+                  },
+                ],
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    position: "bottom",
+                  },
+                  title: {
+                    display: true,
+                    text: "Distribution of Pensioners by Age",
+                  },
+                  tooltip: {
+                    callbacks: {
+                      label: function (context) {
+                        const value = context.raw;
+                        const total = context.dataset.data.reduce(
+                          (a, b) => a + b,
+                          0
+                        );
+                        const percentage = ((value / total) * 100).toFixed(1);
+                        const amount =
+                          ruleData[context.label.replace(" years", "")].pension;
+                        return [
+                          `${value.toLocaleString()} pensioners (${percentage}%)`,
+                          `Total Amount: ₹${amount.toLocaleString()}`,
+                        ];
+                      },
+                    },
+                  },
+                },
+              },
+            });
+          }
+        } catch (error) {
+          console.error("Error updating charts:", error);
+          initializeDefaultCharts();
+        }
+      }
+
+      // Function to update middle column data
+      function updateMiddleColumn(response) {
+        try {
+          if (!response.success || !response.data) {
+            console.error("Invalid data format for middle column");
+            return;
+          }
+
+          const data = response.data;
+          const ruleData = data.rule_data;
+          const isRule1Format = ruleData.hasOwnProperty("matched_records");
+          const isRule3Format = ruleData.hasOwnProperty(
+            "regular_pension_count"
+          );
+          const isRule4Format = ruleData.hasOwnProperty("new");
+
+          // Create the appropriate middle column structure
+          createMiddleColumnContent(isRule1Format);
+
+          if (isRule4Format) {
+            // Update Record Summary section
+            const elements = {
+              newRecords: document.querySelector(".new-records"),
+              oldRecords: document.querySelector(".old-records"),
+              unmatchedRecords: document.querySelector(".unmatched-records"),
+              totalRecords: document.querySelector(".total-records"),
+            };
+
+            if (elements.newRecords) {
+              elements.newRecords.textContent = (
+                ruleData.new || 0
+              ).toLocaleString();
+            }
+            if (elements.oldRecords) {
+              elements.oldRecords.textContent = (
+                ruleData.old || 0
+              ).toLocaleString();
+            }
+            if (elements.unmatchedRecords) {
+              elements.unmatchedRecords.textContent = (
+                ruleData.unmatched || 0
+              ).toLocaleString();
+            }
+            if (elements.totalRecords) {
+              elements.totalRecords.textContent = (
+                ruleData.total || 0
+              ).toLocaleString();
+            }
+          } else if (isRule3Format) {
+            // Update Regular Pension section
+            const regularPensionElement = document.querySelector(
+              ".regular-pension-count"
+            );
+            const regularPensionAmountElement = document.querySelector(
+              ".regular-pension-amount"
+            );
+
+            if (regularPensionElement) {
+              regularPensionElement.textContent =
+                ruleData.regular_pension_count.toLocaleString();
+            }
+            if (regularPensionAmountElement) {
+              regularPensionAmountElement.textContent = `₹${ruleData.regular_pension_amount.toLocaleString()}`;
+            }
+          } else if (isRule1Format) {
+            // Update Matched Records section
+            const matchedElement = document.querySelector(".matched-records");
+            const unlinkedElement = document.querySelector(".unlinked-records");
+
+            if (matchedElement) {
+              matchedElement.textContent =
+                ruleData.matched_records.toLocaleString();
+            }
+            if (unlinkedElement) {
+              unlinkedElement.textContent =
+                ruleData.unlinked_records.toLocaleString();
+            }
+
+            // Update Payment Analysis section
+            const elements = {
+              overpaymentCount: document.querySelector(".overpayment-count"),
+              overpaymentAmount: document.querySelector(".overpayment-amount"),
+              underpaymentCount: document.querySelector(".underpayment-count"),
+              underpaymentAmount: document.querySelector(
+                ".underpayment-amount"
+              ),
+            };
+
+            if (elements.overpaymentCount) {
+              elements.overpaymentCount.textContent =
+                ruleData.overpayment_count.toLocaleString();
+            }
+            if (elements.overpaymentAmount) {
+              elements.overpaymentAmount.textContent = `₹${ruleData.overpayment_amount.toLocaleString()}`;
+            }
+            if (elements.underpaymentCount) {
+              elements.underpaymentCount.textContent =
+                ruleData.underpayment_count.toLocaleString();
+            }
+            if (elements.underpaymentAmount) {
+              elements.underpaymentAmount.textContent = `₹${ruleData.underpayment_amount.toLocaleString()}`;
+            }
+          } else {
+            // Update Total Summary section
+            const totalPensionElement =
+              document.querySelector(".total-pension");
+            const totalAmountElement = document.querySelector(".total-amount");
+
+            if (totalPensionElement) {
+              totalPensionElement.textContent =
+                data.total_pensioners.toLocaleString();
+            }
+            if (totalAmountElement) {
+              totalAmountElement.textContent = `₹${data.total_amt.toLocaleString()}`;
+            }
+
+            // Update Age-wise Distribution section
+            const unlinkedContent = document.querySelector(".unlinked-content");
+            if (unlinkedContent) {
+              unlinkedContent.innerHTML = "";
+
+              const sortedRanges = Object.keys(ruleData).sort((a, b) => {
+                const aStart = parseInt(a.split("-")[0]);
+                const bStart = parseInt(b.split("-")[0]);
+                return aStart - bStart;
+              });
+
+              sortedRanges.forEach((ageRange) => {
+                const rangeData = ruleData[ageRange];
+                const row = document.createElement("div");
+                row.className = "content-row";
+                row.innerHTML = `
+                                <span>${ageRange} years</span>
+                                <div style="display: flex; gap: 1rem; align-items: center;">
+                                    <span class="cases">${rangeData.count.toLocaleString()} cases</span>
+                                    <span class="amount">₹${rangeData.pension.toLocaleString()}</span>
+                                </div>
+                            `;
+                unlinkedContent.appendChild(row);
+              });
+            }
+          }
+
+          // Expand first section by default
+          const firstSection = document.querySelector(".expandable-section");
+          if (firstSection) {
+            firstSection.classList.add("active");
+            const content = firstSection.querySelector(".section-content");
+            if (content) {
+              content.style.maxHeight = `${content.scrollHeight}px`;
+              content.style.opacity = "1";
+              content.style.padding = "6px 26px";
+              content.style.marginBottom = "26px";
+            }
+          }
+        } catch (error) {
+          console.error("Error updating middle column:", error);
+        }
+      }
+
+      async function fetchRuleData(ruleId, month) {
+        console.log("Fetching rule data:", ruleId, month);
+
+        try {
+          const response = await fetch(
+            `/dashboard/get_rule/?month=${month}&rule=${ruleId}`,
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error(
+              `Network response was not ok, status: ${response.status}`
+            );
+          }
+
+          const data = await response.json();
+          console.log("API Response:", data);
+          return data;
+        } catch (error) {
+          console.error("Error fetching rule data:", error);
+          return null;
+        }
+      }
+
+      // Function to handle rule selection
+      async function handleRuleSelection(ruleId, month) {
+        try {
+          const response = await fetchRuleData(ruleId, month);
+          if (response && response.success) {
+            window.currentResponse = response; // Store the response
+            updateChartsWithApiData(response);
+            updateMiddleColumn(response);
+          } else {
+            initializeDefaultCharts();
+          }
+        } catch (error) {
+          console.error("Error handling rule selection:", error);
+          initializeDefaultCharts();
+        }
+      }
+
+      // Function to handle file upload
+      function handleFileUpload(file, modalType) {
+        return new Promise(async (resolve, reject) => {
+          try {
+            const formData = new FormData();
+            formData.append("file", file);
+
+            let endpoint;
+            switch (modalType) {
+              case "debitScrollModal":
+                endpoint = "/dashboard/upload_debit_zone";
+                break;
+              case "nwrMasterModal":
+                endpoint = "/dashboard/upload_master_excel";
+                break;
+              case "bankMasterModal":
+                endpoint = "/dashboard/upload_nwr_zone";
+                break;
+              default:
+                throw new Error("Unknown upload type");
+            }
+
+            const response = await fetch(endpoint, {
+              method: "POST",
+              body: formData,
+            });
+
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            resolve(result);
+          } catch (error) {
+            reject(error);
+          }
+        });
+      }
+
+      // Function to initialize expandable sections
+      function initializeExpandableSections() {
+        const sections = document.querySelectorAll(".expandable-section");
+
+        sections.forEach((section) => {
+          const header = section.querySelector(".section-header");
+          const content = section.querySelector(".section-content");
+
+          // Set initial state
+          content.style.maxHeight = "0px";
+          content.style.opacity = "0";
+
+          header.addEventListener("click", () => {
+            // Toggle active class
+            section.classList.toggle("active");
+
+            // Update content visibility
+            if (section.classList.contains("active")) {
+              content.style.maxHeight = `${content.scrollHeight}px`;
+              content.style.opacity = "1";
+              content.style.padding = "6px 26px";
+              content.style.marginBottom = "26px";
+            } else {
+              content.style.maxHeight = "0px";
+              content.style.opacity = "0";
+              content.style.padding = "0px 26px";
+              content.style.marginBottom = "0px";
+            }
+          });
+        });
+      }
+
+      // Initialize everything when the page loads
+      function initializeApp() {
+        // Initialize default charts
+        initializeNotificationHandlers();
+        initializeDefaultCharts();
+
+        // Initialize expandable sections
+        initializeExpandableSections();
+
+        // Add event listener for rule selection
+        const ruleSelector = document.getElementById("ruleSelector");
+        let dateSelector = document.getElementById("dateSelector");
+
+        if (ruleSelector && dateSelector) {
+          // Handle rule changes
+          ruleSelector.addEventListener("change", (e) => {
+            const selectedMonth = dateSelector.value || "9"; // Default to 9 if no month selected
+            // handleRuleSelection(e.target.value, selectedMonth);
+          });
+
+          // Handle date changes
+          dateSelector.addEventListener("change", (e) => {
+            const selectedRule = ruleSelector.value || "1"; // Default to rule 1 if none selected
+            // handleRuleSelection(selectedRule, e.target.value);
+          });
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", initializeApp);
+
+      // Add this function to create middle column content
+      function createMiddleColumnContent(isRule1Format) {
+        const middleColumn = document.getElementById("middleColumn");
+        const ruleData = window.currentResponse?.data?.rule_data;
+        const ruleno = window.currentResponse?.data?.rule_no;
+        const isRule3Format = ruleData?.hasOwnProperty("regular_pension_count");
+        const isRule4Format = ruleData?.hasOwnProperty("new");
+
+        if (isRule4Format) {
+          // Rule 4 content
+          middleColumn.innerHTML = `
+                    <div class="expandable-section">
+                        <div class="section-header">
+                            <div class="header-left">
+                                <span class="dot linked"></span>
+                                <h2>Record Summary</h2>
+                            </div>
+                            <i class="fas fa-angle-down arrow-icon"></i>
+                        </div>
+                        <div class="section-content">
+                            <div class="linked-content">
+                                <div class="content-row">
+                                    <span>Revised</span>
+                                    <span class="new-records">${
+                                      ruleData.new?.toLocaleString() || "0"
+                                    }</span>
+                                </div>
+                                <div class="content-row">
+                                    <span>Not Revised</span>
+                                    <span class="old-records">${
+                                      ruleData.old?.toLocaleString() || "0"
+                                    }</span>
+                                </div>
+                                {% comment %} <div class="content-row">
+                                    <span>Unmatched Records</span>
+                                    <span class="unmatched-records">${
+                                      ruleData.unmatched?.toLocaleString() ||
+                                      "0"
+                                    }</span>
+                                </div>
+                                <div class="content-row">
+                                    <span>Total Records</span>
+                                    <span class="total-records">${
+                                      ruleData.total?.toLocaleString() || "0"
+                                    }</span>
+                                </div> {% endcomment %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="expandable-section">
+                        <div class="section-header">
+                            <div class="header-left">
+                                <span class="dot unlinked"></span>
+                                <h2>Additional Information</h2>
+                            </div>
+                            <i class="fas fa-angle-down arrow-icon"></i>
+                        </div>
+                        <div class="section-content">
+                            <div class="unlinked-content">
+                                <div class="content-row">
+                                    <span>Unmatched Records</span>
+                                    <span class="unmatched-records">${ruleData.unmatched.toLocaleString()}</span>
+                                </div>
+                                <div class="content-row">
+                                    <span>Total Records</span>
+                                    <span class="total-records">${ruleData.total.toLocaleString()}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+        } else if (isRule3Format) {
+          // Existing Rule 3 content
+          middleColumn.innerHTML = `
+                    <div class="expandable-section">
+                        <div class="section-header">
+                            <div class="header-left">
+                                <span class="dot linked"></span>
+                                <h2>Regular Pension</h2>
+                            </div>
+                            <i class="fas fa-angle-down arrow-icon"></i>
+                        </div>
+                        <div class="section-content">
+                            <div class="linked-content">
+                                <div class="content-row">
+                                    <span>Total Pensioners</span>
+                                    <span class="regular-pension-count">${ruleData.regular_pension_count.toLocaleString()}</span>
+                                </div>
+                                <div class="content-row">
+                                    <span>Total Amount</span>
+                                    <span class="regular-pension-amount">₹${ruleData.regular_pension_amount.toLocaleString()}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="expandable-section">
+                        <div class="section-header">
+                            <div class="header-left">
+                                <span class="dot unlinked"></span>
+                                <h2>Family Pension</h2>
+                            </div>
+                            <i class="fas fa-angle-down arrow-icon"></i>
+                        </div>
+                        <div class="section-content">
+                            <div class="unlinked-content">
+                                <div class="content-row">
+                                    <span>Total Pensioners</span>
+                                    <span class="family-pension-count">${ruleData.family_pension_count.toLocaleString()}</span>
+                                </div>
+                                <div class="content-row">
+                                    <span>Total Amount</span>
+                                    <span class="family-pension-amount">₹${ruleData.family_pension_amount.toLocaleString()}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+        } else if (isRule1Format) {
+          middleColumn.innerHTML = `
+                    <div class="expandable-section">
+                        <div class="section-header">
+                            <div class="header-left">
+                                <span class="dot linked"></span>
+                                <h2>Matched Records</h2>
+                            </div>
+                            <i class="fas fa-angle-down arrow-icon"></i>
+                        </div>
+                        <div class="section-content">
+                            <div class="linked-content">
+                                <div class="content-row">
+                                    <span>Total Matched</span>
+                                    <span class="matched-records">0</span>
+                                </div>
+                                <div class="content-row">
+                                    <span>Total Unlinked</span>
+                                    <span class="unlinked-records">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="expandable-section">
+                        <div class="section-header">
+                            <div class="header-left">
+                                <span class="dot unlinked"></span>
+                                <h2>Payment Analysis</h2>
+                            </div>
+                            <i class="fas fa-angle-down arrow-icon"></i>
+                        </div>
+                        <div class="section-content">
+                            <div class="unlinked-content">
+                                <div class="content-row">
+                                    <span>Overpayment Cases</span>
+                                    <span class="overpayment-count">0</span>
+                                </div>
+                                <div class="content-row">
+                                    <span>Overpayment Amount</span>
+                                    <span class="overpayment-amount">₹0</span>
+                                </div>
+                                <div class="content-row">
+                                    <span>Underpayment Cases</span>
+                                    <span class="underpayment-count">0</span>
+                                </div>
+                                <div class="content-row">
+                                    <span>Underpayment Amount</span>
+                                    <span class="underpayment-amount">₹0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+        } else {
+          // Existing Rule 2 content
+          middleColumn.innerHTML = `
+                    <div class="expandable-section">
+                        <div class="section-header">
+                            <div class="header-left">
+                                <span class="dot linked"></span>
+                                <h2>Total Summary</h2>
+                            </div>
+                            <i class="fas fa-angle-down arrow-icon"></i>
+                        </div>
+                        <div class="section-content">
+                            <div class="linked-content">
+                                <div class="content-row">
+                                    <span>Total Pensioners</span>
+                                    <span class="total-pension">0</span>
+                                </div>
+                                <div class="content-row">
+                                    <span>Total Amount</span>
+                                    <span class="total-amount">₹0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="expandable-section">
+                        <div class="section-header">
+                            <div class="header-left">
+                                <span class="dot unlinked"></span>
+                                <h2>Age-wise Distribution</h2>
+                            </div>
+                            <i class="fas fa-angle-down arrow-icon"></i>
+                        </div>
+                        <div class="section-content">
+                            <div class="unlinked-content">
+                                <!-- Age-wise data will be dynamically inserted here -->
+                            </div>
+                        </div>
+                    </div>
+                `;
+        }
+
+        // Reinitialize expandable sections
+        initializeExpandableSections();
+      }
+
+      // Add this after your existing script
+      document.addEventListener("DOMContentLoaded", function () {
+        // Get modal elements
+        const debitScrollModal = document.getElementById("debitScrollModal");
+        const nwrMasterModal = document.getElementById("nwrMasterModal");
+        const bankMasterModal = document.getElementById("bankMasterModal");
+        const uploadButton = document.querySelector(".upload-button");
+        const nwrMasterBtn = document.querySelector(".nav-button:nth-child(1)");
+        const bankMasterBtn = document.querySelector(
+          ".nav-button:nth-child(2)"
+        );
+        const modalCloses = document.querySelectorAll(".modal-close");
+        const fileInputs = document.querySelectorAll(".file-upload-input");
+        const fileContainers = document.querySelectorAll(
+          ".file-upload-container"
+        );
+        const selectedFiles = document.querySelectorAll(".selected-file");
+        const sendButtons = document.querySelectorAll(".modal-send-btn");
+        const loaderOverlay = document.querySelector(".loader-overlay");
+
+        // Function to show modal
+        function showModal(modal) {
+          modal.style.display = "flex";
+          document.body.style.overflow = "hidden";
+        }
+
+        // Function to hide modal
+        function hideModal(modal) {
+          modal.style.display = "none";
+          document.body.style.overflow = "auto";
+        }
+
+        // Show modals on button click
+        uploadButton.addEventListener("click", () =>
+          showModal(debitScrollModal)
+        );
+        nwrMasterBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          showModal(nwrMasterModal);
+        });
+        bankMasterBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          showModal(bankMasterModal);
+        });
+
+        // Close modals
+        modalCloses.forEach((closeBtn) => {
+          closeBtn.addEventListener("click", () => {
+            const modal = closeBtn.closest(".modal");
+            hideModal(modal);
+          });
+        });
+
+        // Close on outside click
+        window.addEventListener("click", (e) => {
+          if (e.target.classList.contains("modal")) {
+            hideModal(e.target);
+          }
+        });
+
+        // Handle drag and drop
+        fileContainers.forEach((container, index) => {
+          container.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            container.classList.add("dragging");
+          });
+
+          container.addEventListener("dragleave", () => {
+            container.classList.remove("dragging");
+          });
+
+          container.addEventListener("drop", (e) => {
+            e.preventDefault();
+            container.classList.remove("dragging");
+            const file = e.dataTransfer.files[0];
+            if (file) {
+              fileInputs[index].files = e.dataTransfer.files;
+              handleFileSelection(file, index);
+            }
+          });
+
+          container.addEventListener("click", () => {
+            fileInputs[index].click();
+          });
+        });
+
+        function handleFileSelection(file, index) {
+          if (file) {
+            selectedFiles[index].textContent = `Selected file: ${file.name}`;
+            selectedFiles[index].style.display = "block";
+            sendButtons[index].classList.add("active");
+          } else {
+            selectedFiles[index].textContent = "";
+            selectedFiles[index].style.display = "none";
+            sendButtons[index].classList.remove("active");
+          }
+        }
+
+        fileInputs.forEach((input, index) => {
+          input.addEventListener("change", (e) => {
+            const file = e.target.files[0];
+            handleFileSelection(file, index);
+          });
+        });
+
+        sendButtons.forEach((button, index) => {
+          console.log(index);
+          button.addEventListener("click", () => {
+            const fileInput = fileInputs[index];
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            button.disabled = true;
+            loaderOverlay.style.display = "flex";
+
+            const formData = new FormData();
+            formData.append("file", file);
+
+            // Determine the endpoint based on the modal
+            const endpoint =
+              index === 0
+                ? "/dashboard/upload_debit_zone/"
+                : index === 1
+                ? "/dashboard/upload_nwr_zone/"
+                : "/dashboard/upload_master_excel/";
+
+            $.ajax({
+              url: endpoint,
+              type: "POST",
+              data: formData,
+              processData: false,
+              contentType: false,
+              success: function (response) {
+                // Success
+                alert("File uploaded successfully!");
+
+                // Reset the form
+                fileInput.value = "";
+                selectedFiles[index].textContent = "";
+                selectedFiles[index].style.display = "none";
+                button.classList.remove("active");
+
+                // Hide modal and loader
+                hideModal(button.closest(".modal"));
+                loaderOverlay.style.display = "none";
+              },
+              error: function () {
+                // Error
+                alert("Failed to upload file. Please try again.");
+                loaderOverlay.style.display = "none";
+              },
+              complete: function () {
+                // Re-enable button
+                button.disabled = false;
+                button.innerHTML =
+                  '<i class="fas fa-paper-plane"></i> Send File';
+              },
+            });
+          });
+        });
+      });
+
+      document.addEventListener("DOMContentLoaded", function () {
+        const rulesSection = document.querySelector(".rules-section");
+        const rulesSection_div = document.getElementById("rulesSection");
+
+        rulesSection_div.addEventListener("click", function () {
+          rulesSection.classList.toggle("open");
+        });
+      });
+
+      // JSON data structure for rules and their corresponding questions/options
+      const rulesData = {
+        overpayment_underpayment: {
+          title: "Overall underpayment/overpayment",
+          initial_message:
+            "I can help you analyze payment discrepancies. What specific aspect would you like to examine?",
+          options: [
+            {
+              text: "Check overpayment cases",
+              response:
+                "I'll analyze the overpayment cases. Would you like to:",
+              sub_options: [
+                "View total number of overpayment cases",
+                "Calculate total overpayment amount",
+                "Get detailed breakdown by department",
+              ],
+            },
+            {
+              text: "Check underpayment cases",
+              response:
+                "I'll help you review underpayment cases. Would you like to:",
+              sub_options: [
+                "View total number of underpayment cases",
+                "Calculate total underpayment amount",
+                "Get detailed breakdown by department",
+              ],
+            },
+            {
+              text: "Compare payment trends",
+              response:
+                "Let's analyze payment trends. What would you like to focus on?",
+              sub_options: [
+                "Monthly payment variations",
+                "Department-wise analysis",
+                "Year-over-year comparison",
+              ],
+            },
+          ],
+        },
+        age_metrics: {
+          title: "Age Related Metrics",
+          initial_message:
+            "I can help you analyze age-related pension data. What would you like to know?",
+          options: [
+            {
+              text: "Age Distribution Analysis",
+              response:
+                "Let's analyze the age distribution. Would you like to:",
+              sub_options: [
+                "View age group breakdown",
+                "Check average age by department",
+                "Identify retirement-eligible employees",
+              ],
+            },
+            {
+              text: "Pension Amount by Age",
+              response:
+                "I'll help you analyze pension amounts by age. Would you like to:",
+              sub_options: [
+                "View average pension by age group",
+                "Compare pension trends across age ranges",
+                "Identify age-based anomalies",
+              ],
+            },
+          ],
+        },
+        family_pension: {
+          title: "Family Pension Cases",
+          initial_message:
+            "I can assist with family pension related queries. What would you like to explore?",
+          options: [
+            {
+              text: "Family Pension Conversion",
+              response:
+                "Let's look at family pension conversions. Would you like to:",
+              sub_options: [
+                "View pending conversion cases",
+                "Check eligibility criteria",
+                "Review conversion timeline",
+              ],
+            },
+            {
+              text: "Beneficiary Analysis",
+              response:
+                "I'll help you analyze beneficiary data. Would you like to:",
+              sub_options: [
+                "View beneficiary demographics",
+                "Check payment distribution",
+                "Review relationship categories",
+              ],
+            },
+          ],
+        },
+        pay_commission: {
+          title: "Pay Commission Implementation",
+          initial_message:
+            "I can help you with pay commission related information. What would you like to know?",
+          options: [
+            {
+              text: "Implementation Status",
+              response:
+                "Let's check the implementation status. Would you like to:",
+              sub_options: [
+                "View overall progress",
+                "Check department-wise status",
+                "Review pending cases",
+              ],
+            },
+            {
+              text: "Financial Impact",
+              response:
+                "I'll help you analyze the financial impact. Would you like to:",
+              sub_options: [
+                "View total cost implications",
+                "Check arrear calculations",
+                "Compare pre and post revision",
+              ],
+            },
+          ],
+        },
+        pension_revision: {
+          title: "Pension Revision Cases",
+          initial_message:
+            "I can help you with pension revision analysis. What would you like to examine?",
+          options: [
+            {
+              text: "Revision Status",
+              response: "Let's analyze the revision status. Would you like to:",
+              sub_options: [
+                "View pending revisions",
+                "Check completed revisions",
+                "Review revision timeline",
+              ],
+            },
+            {
+              text: "Impact Analysis",
+              response:
+                "I'll help you analyze the revision impact. Would you like to:",
+              sub_options: [
+                "Calculate financial impact",
+                "View beneficiary distribution",
+                "Check department-wise status",
+              ],
+            },
+          ],
+        },
+      };
+
+      document.addEventListener("DOMContentLoaded", function () {
+        const rulesSection = document.querySelector(".rules-section");
+        const toggleButton = document.querySelector(".toggle-button");
+        const chatMessages = document.querySelector(".chat-messages");
+        const messageInput = document.querySelector(".message-input");
+        const sendButton = document.querySelector(".send-button");
+        const notificationItems =
+          document.querySelectorAll(".notification-item");
+
+        // Set initial state to open
+        rulesSection.classList.add("open");
+
+        toggleButton.addEventListener("click", function () {
+          rulesSection.classList.toggle("open");
+        });
+
+        // Add click event listeners to notification items
+        notificationItems.forEach((item) => {
+          item.addEventListener("click", function () {
+            // Clear existing chat messages
+            chatMessages.innerHTML = "";
+
+            // Get the selected rule title and description
+            const ruleTitle = this.querySelector(
+              ".notification-header span"
+            ).textContent;
+            const ruleDescription = this.querySelector(
+              ".notification-preview"
+            ).textContent;
+
+            // Find the corresponding rule data
+            let ruleData;
+            if (
+              ruleTitle.toLowerCase().includes("overpayment") ||
+              ruleTitle.toLowerCase().includes("underpayment")
+            ) {
+              ruleData = rulesData.overpayment_underpayment;
+            } else if (ruleTitle.toLowerCase().includes("family pension")) {
+              ruleData = rulesData.family_pension;
+            } else if (ruleTitle.toLowerCase().includes("pay commission")) {
+              ruleData = rulesData.pay_commission;
+            } else if (ruleTitle.toLowerCase().includes("new pensioners")) {
+              ruleData = rulesData.pension_revision;
+            }
+
+            // Add initial bot message with the selected rule info
+
+            // Close the rules section after selection
+            rulesSection.classList.remove("open");
+          });
+        });
+
+        // Function to add options buttons
+        function addOptions(options) {
+          const optionsDiv = document.createElement("div");
+          optionsDiv.className = "options-container";
+
+          options.forEach((option) => {
+            const button = document.createElement("button");
+            button.className = "option-button";
+            button.textContent = option.text;
+            button.addEventListener("click", () => {
+              // Add user's selection as a message
+              addMessage(option.text, false);
+
+              // Add bot's response
+              setTimeout(() => {
+                if (option.response) {
+                  addMessage(option.response, true);
+                }
+
+                // Add sub-options if they exist
+                if (option.sub_options && option.sub_options.length > 0) {
+                  setTimeout(() => {
+                    addOptions(option.sub_options.map((text) => ({ text })));
+                  }, 500);
+                }
+              }, 500);
+            });
+            optionsDiv.appendChild(button);
+          });
+
+          chatMessages.appendChild(optionsDiv);
+        }
+
+        // Function to add a message to the chat
+        function addMessage(text, isBot = false) {
+          const messageDiv = document.createElement("div");
+          messageDiv.className = `message ${
+            isBot ? "bot-message" : "user-message"
+          }`;
+
+          const messageContent = document.createElement("div");
+          messageContent.className = "message-content";
+
+          const textP = document.createElement("p");
+          textP.textContent = text;
+
+          const timeSpan = document.createElement("span");
+          timeSpan.className = "message-time";
+          const now = new Date();
+          timeSpan.textContent = `${now.getHours()}:${String(
+            now.getMinutes()
+          ).padStart(2, "0")}`;
+
+          messageContent.appendChild(textP);
+          messageContent.appendChild(timeSpan);
+          messageDiv.appendChild(messageContent);
+          chatMessages.appendChild(messageDiv);
+
+          // Scroll to bottom
+          chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Handle send button click
+        sendButton.addEventListener("click", function () {
+          const text = messageInput.value.trim();
+          if (text) {
+            addMessage(text, false);
+            messageInput.value = "";
+          }
+        });
+
+        // Handle enter key in input
+        messageInput.addEventListener("keypress", function (e) {
+          if (e.key === "Enter") {
+            const text = this.value.trim();
+            console.log(text);
+            if (text) {
+              submit_chat();
+
+              this.value = "";
+            }
+          }
+        });
+      });
+
+      // Function to handle rule or function selection
+      async function handleRuleOrFunctionSelect(ruleId) {
+        try {
+          // Get selected month from dropdown
+          const monthDropdown = document.getElementById("dateSelector");
+          const selectedMonth = monthDropdown ? monthDropdown.value : "9";
+
+          // Use the existing handleRuleSelection function with ruleId and month
+          await handleRuleSelection(ruleId, selectedMonth);
+        } catch (error) {
+          console.error("Error in rule/function selection:", error);
+        }
+      }
+
+      // Function to initialize notification item click handlers
+      function initializeNotificationHandlers() {
+        console.log("Notification handlers initialized.");
+        const notificationItems =
+          document.querySelectorAll(".notification-item");
+        const ruleIdMap = {
+          "Overall underpayment/overpayment": "1",
+          "Age Metrics": "2",
+          "Family Pension Conversion": "3",
+          "Pay commission revisions": "4",
+        };
+
+        function getRuleIdFromActiveItem() {
+          const activeItem = document.querySelector(
+            ".notification-item.active"
+          );
+          if (activeItem) {
+            const headerSpan = activeItem.querySelector(
+              ".notification-header span:first-child"
+            );
+            const ruleName = headerSpan.textContent.trim();
+            return ruleIdMap[ruleName] || "1";
+          }
+          return "1";
+        }
+
+        notificationItems.forEach((item) => {
+          item.addEventListener("click", () => {
+            notificationItems.forEach((i) => i.classList.remove("active"));
+
+            item.classList.add("active");
+
+            const headerSpan = item.querySelector(
+              ".notification-header span:first-child"
+            );
+            const ruleName = headerSpan.textContent.trim();
+
+            const ruleId = ruleIdMap[ruleName] || "1";
+
+            handleRuleOrFunctionSelect(ruleId);
+          });
+        });
+
+        const finalRuleId = getRuleIdFromActiveItem();
+        handleRuleOrFunctionSelect(finalRuleId);
+      }
+
+      // Function to add a message to the chat
+      function addMessage(text, isBot = false) {
+        const chatMessages = document.querySelector(".chat-messages");
+        if (!chatMessages) return;
+
+        const messageDiv = document.createElement("div");
+        messageDiv.className = `message ${
+          isBot ? "bot-message" : "user-message"
+        }`;
+
+        const messageContent = document.createElement("div");
+        messageContent.className = "message-content";
+
+        const textP = document.createElement("p");
+        textP.textContent = text;
+
+        const timeSpan = document.createElement("span");
+        timeSpan.className = "message-time";
+        const now = new Date();
+        timeSpan.textContent = `${now.getHours()}:${String(
+          now.getMinutes()
+        ).padStart(2, "0")}`;
+
+        messageContent.appendChild(textP);
+        messageContent.appendChild(timeSpan);
+        messageDiv.appendChild(messageContent);
+        chatMessages.appendChild(messageDiv);
+
+        // Scroll to bottom
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+      function addMessageStreaming(text, isBot = false) {
+        const chatMessages = document.querySelector(".chat-messages");
+        if (!chatMessages) return;
+
+        // Create message container
+        const messageDiv = document.createElement("div");
+        messageDiv.className = `message ${
+          isBot ? "bot-message" : "user-message"
+        }`;
+
+        // Create message content container
+        const messageContent = document.createElement("div");
+        messageContent.className = "message-content";
+
+        // Create paragraph for text
+        const textP = document.createElement("p");
+        textP.textContent = ""; // Initially empty for the typing effect
+
+        // Create timestamp
+        const timeSpan = document.createElement("span");
+        timeSpan.className = "message-time";
+        const now = new Date();
+        timeSpan.textContent = `${now.getHours()}:${String(
+          now.getMinutes()
+        ).padStart(2, "0")}`;
+
+        // Append elements
+        messageContent.appendChild(textP);
+        messageContent.appendChild(timeSpan);
+        messageDiv.appendChild(messageContent);
+        chatMessages.appendChild(messageDiv);
+
+        // Scroll to bottom
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        // Typing effect: Stream characters one by one
+        let i = 0;
+        function typeCharacter() {
+          if (i < text.length) {
+            textP.textContent += text[i];
+            i++;
+            setTimeout(typeCharacter, 30); // Adjust speed here (30ms per character)
+          }
+        }
+
+        typeCharacter();
+      }
+
+      // Function to add options to the chat
+      function addOptions(options) {
+        const chatMessages = document.querySelector(".chat-messages");
+        if (!chatMessages) return;
+
+        const optionsDiv = document.createElement("div");
+        optionsDiv.className = "options-container";
+
+        options.forEach((option) => {
+          const button = document.createElement("button");
+          button.className = "option-button";
+          button.textContent = option.text;
+          button.addEventListener("click", () => {
+            // Add user's selection as a message
+            addMessage(option.text, false);
+
+            // Add bot's response
+            setTimeout(() => {
+              if (option.response) {
+                addMessage(option.response, true);
+              }
+
+              // Add sub-options if they exist
+              if (option.subOptions && option.subOptions.length > 0) {
+                setTimeout(() => {
+                  addOptions(option.subOptions);
+                }, 500);
+              }
+            }, 500);
+          });
+          optionsDiv.appendChild(button);
+        });
+
+        chatMessages.appendChild(optionsDiv);
+      }
+
+      // Function to get options based on rule ID
+
+      // Handle send button click
+      const sendButton = document.querySelector(".send-button");
+      const messageInput = document.querySelector(".message-input");
+
+      if (sendButton && messageInput) {
+        sendButton.addEventListener("click", () => {
+          const text = messageInput.value.trim();
+          if (text) {
+            addMessage(text, false);
+            messageInput.value = "";
+          }
+        });
+
+        // Handle enter key in input
+        messageInput.addEventListener("keypress", (e) => {
+          if (e.key === "Enter") {
+            const text = messageInput.value.trim();
+            if (text) {
+              submit_chat();
+
+              messageInput.value = "";
+            }
+          }
+        });
+      }
+      function submit_chat() {
+        const chatInput = document.getElementById("chat_input");
+        const userQuery = chatInput.value.trim();
+
+        if (!userQuery) return; // Prevent empty submissions
+
+        addMessage(userQuery, false); // Show user message instantly
+
+        const url = "/dashboard/chat_completion/";
+        const xhr = new XMLHttpRequest();
+
+        xhr.open("POST", url, true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+
+        xhr.onreadystatechange = function () {
+          if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+              let result;
+              try {
+                result = JSON.parse(xhr.responseText);
+                console.log("Result:", result);
+              } catch (error) {
+                console.error("Invalid JSON response:", xhr.responseText);
+                addMessage("Error: Invalid response format.", true);
+                return;
+              }
+
+              processResponse(result);
+            } else {
+              console.error("Error:", xhr.responseText);
+              addMessage("An error occurred while fetching data.", true);
+            }
+          }
+        };
+
+        xhr.send(JSON.stringify({ query: userQuery }));
+        chatInput.value = ""; // Clear input after sending
+      }
+      function processResponse(result) {
+        if (!result || !result.data) {
+          addMessageStreaming("No data received.", true);
+          return;
+        }
+
+        const responseData = result.data;
+
+        if (typeof responseData === "string") {
+          // Handle direct text responses
+          addMessageStreaming(responseData, true);
+        } else if (Array.isArray(responseData)) {
+          // Handle array responses
+          responseData.forEach((entry) => {
+            if (typeof entry === "string") {
+              addMessageStreaming(entry, true); // Handle string array
+            } else if (typeof entry === "object") {
+              addMessageStreaming(formatObject(entry), true); // Handle object array
+            }
+          });
+        } else if (typeof responseData === "object") {
+          // Handle single object response
+          addMessageStreaming(formatObject(responseData), true);
+        } else {
+          // Handle unknown response type
+          addMessageStreaming("Unexpected response format.", true);
+        }
+      }
+
+      // Format object to readable string
+      function formatObject(obj) {
+        return Object.entries(obj)
+          .map(([key, value]) => `${key.replace(/_/g, " ")}: ${value}`)
+          .join("\n");
+      }
+    </script>
+  </body>
+</html>
