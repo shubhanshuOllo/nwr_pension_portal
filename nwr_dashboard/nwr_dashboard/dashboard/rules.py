@@ -202,7 +202,7 @@ def overall_payment(month):
     mismatch_data_filter = mismatch_data.objects.filter(month__endswith=str(month))
     filtered_ds = DebitScroll.objects.filter(pension_month=f"20240{month}")
     unlinked_accounts = arpan_exception.objects.all()
-
+    unlinked_accounts = arpan_exception.objects.filter(ifsc_code__icontains="SBI")
     
     mismatch_data_final = mismatch_data_filter.values_list('basic_diff', flat=True)
 

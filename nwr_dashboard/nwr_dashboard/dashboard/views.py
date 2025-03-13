@@ -807,10 +807,11 @@ def generate_excl(request):
         overpayment_sheet = wb.create_sheet(title="OVERPAYMENT RECORDS")
         
         query = """
-            SELECT e.*, md.* 
+           SELECT e.*, md.* 
             FROM arpan_exception AS e 
-            left JOIN nwr_master_data AS md 
+            LEFT JOIN nwr_master_data AS md 
             ON md.ppo_number = e.scroll_ppo_no
+            WHERE e.ifsc_code LIKE '%SBI%';
         """
         with connection.cursor() as cursor:
             cursor.execute(query)
