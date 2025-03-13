@@ -78,6 +78,14 @@
         <div class="chart-container">
           <canvas id="pieChart"></canvas>
         </div>
+        {% comment %} <div class="chart-container">
+          <canvas id="linkedPieChart"></canvas>
+        </div>
+
+        <!-- Second Pie Chart: Matched Cases Breakdown -->
+        <div class="chart-container">
+          <canvas id="matchedPieChart"></canvas>
+        </div> {% endcomment %}
       </div>
 
       <!-- Middle Column -->
@@ -908,7 +916,7 @@
                       ],
                       datasets: [
                           // First Layer - Main Categories
-                          {
+                          /*{
                               data: [
                                   ruleData.unlinked_records, // Unlinked records
                                   ruleData.matched_records, // Total Matched records
@@ -916,7 +924,7 @@
                               backgroundColor: ["#36A2EB", "#6B5EFF"], // Blue shades
                               borderColor: "#FFFFFF",
                               borderWidth: 2,
-                          },
+                          },*/
                           // Second Layer - Breakdown of Matched Records
                           {
                               data: [
@@ -941,20 +949,14 @@
                       maintainAspectRatio: false,
                       cutout: "50%", // Adjust inner hole size for clarity
                       plugins: {
+                          
                           legend: {
-                              position: "bottom",
+                              display: true, // Ensure legend is displayed
+                              position: 'bottom', // Position legend at the bottom
                               labels: {
-                                  generateLabels: function (chart) {
-                                      let dataset = chart.data.datasets[1]; // Use second dataset for colors
-                                      return chart.data.labels.map((label, index) => ({
-                                          text: label,
-                                          fillStyle: dataset.backgroundColor[index], // Use colors from second dataset
-                                          strokeStyle: "#FFFFFF",
-                                          lineWidth: 2,
-                                          hidden: isNaN(dataset.data[index]) || dataset.data[index] === 0
-                                      }));
-                                  }
-                              }
+                                usePointStyle: true, // Use point style for legend
+                                color: '#333', // Set legend text color
+                              },
                           },
                           tooltip: {
                               callbacks: {
