@@ -22,6 +22,8 @@
     <div class="loading-overlay" id="loading_div" style="display: none">
       <div class="loader"></div>
     </div>
+    
+    <div style="height: 100vh; display: flex ; flex-direction: column;">
     <nav class="navbar">
       <div class="logo-section">
         <img
@@ -30,7 +32,7 @@
           class="logo"
         />
 
-        <h1>NWR Pension Portal</h1>
+          <h1 style="font-weight: 400;"><span style="color:#101828; font-weight: 500;">NWR</span> Pension Portal</h1>
       </div>
       <div class="nav-buttons">
         <a href="#" class="nav-button">
@@ -145,11 +147,11 @@
       <!-- Right Column - Chatbot -->
       <div class="chatbot">
         <!-- Rules and Functions Section -->
-        <div class="rules-section" id="rulesSection">
-          <div class="rules-header">
+          <div class="rules-section" >
+            <div class="rules-header" id="rulesSection">
             <h2>Rules and Functions</h2>
             <button class="toggle-button">
-              <i class="fas fa-angle-down"></i>
+                <i class="fas fa-angle-down" style="color: white;"></i>
             </button>
           </div>
           <div class="rules-content">
@@ -261,7 +263,15 @@
               <i class="fas fa-paper-plane"></i>
             </button>
           </div>
+            <div style=" display: flex; flex-direction: column; align-items: flex-end; margin-top: 6px; margin-bottom: 0px; ">
+               <span style="background: linear-gradient(180deg, #292578 0%, #4C44DE 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; text-fill-color: transparent; font-style: italic;  font-size: 14px;   padding-right: 4px;">Built by Degreemaster.ai</span>
+               <div class="arrow_Degreemaster"></div>
         </div>
+      </div>
+    </div>
+      </div>
+      <!-- <div style="background: url(../../static/css/Indian_Railways_converted.png) no-repeat center; opacity: .1; background-size: contain; height: 100%; width: 100%; position: absolute; z-index: 1; left: 0px; right: 0; top: 0; bottom: 0; pointer-events: none;"> -->
+
       </div>
     </div>
 
@@ -1126,15 +1136,15 @@
                       pieChart = new Chart(pieCtx, {
                           type: 'doughnut',
                           data: {
-                              labels: ['Total Pensioners', 'EFP Count', 'Normal Pension'],
+                              labels: [ 'EFP Count', 'Normal Pension Count'],
                               datasets: [{
                                   data: [
-                                      ruleData.total_pensioner || 0,
+                                     
                                       ruleData.efp_count || 0,
                                       ruleData.normal_pension || 0,
 
                                   ],
-                                  backgroundColor: ['#36A2EB', '#6B5EFF', '#FF6384'],
+                                  backgroundColor: [ '#6B5EFF', '#FF6384'],
                                   borderColor: '#FFFFFF',
                                   borderWidth: 2
                               }]

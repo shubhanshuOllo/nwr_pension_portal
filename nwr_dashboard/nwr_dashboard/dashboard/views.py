@@ -670,6 +670,19 @@ Return only the generated SQL query without extra commentary.Remove Any Extra Fo
 SELECT COUNT(*) AS total_80_85_pensioners
 FROM matched_pensioners
 WHERE age >= 80 ;
+"tell me total Enhance Family Pension users and normal pension users" → SELECT 
+        SUM(CASE WHEN efp_amount > 0 THEN 1 ELSE 0 END) AS count_efp_greater_than_0,
+        SUM(CASE WHEN efp_amount = 0 THEN 1 ELSE 0 END) AS count_efp_equal_to_0
+    FROM nwr_zone_data; 
+
+"Give me the count of stopped pensioners for given month  
+where inactive = stop pensioners
+    if month is may -> Total Pensioners 50,579 , Active Pensioners 50,571 , Inactive Pensioners 8,Active Pension Amount ₹3,568,393,Inactive Pension Amount ₹150,973
+    if month is june -> Total Pensioners 50,429 , Active Pensioners 50,355 , Inactive Pensioners 74,Active Pension Amount ₹944,578,550,Inactive Pension Amount ₹1,216,532
+    if month is july -> Total Pensioners 50,523 , Active Pensioners 50,428 , Inactive Pensioners 95,Active Pension Amount ₹947,156,416,Inactive Pension Amount ₹1,349,985
+    if month is august -> Total Pensioners 50,540 , Active Pensioners 50,468 , Inactive Pensioners 72,Active Pension Amount ₹951,371,149,Inactive Pension Amount ₹1,414,757
+    if month is september -> Total Pensioners 50,604 , Active Pensioners 50,413 , Inactive Pensioners 191,Active Pension Amount ₹951,910,447,Inactive Pension Amount ₹3,180,245
+
 
 
 
@@ -686,6 +699,7 @@ only return sql query no need to return anything apart from it do not even add t
 
 
 api_keyy = os.getenv("OPENAI_API_KEY")
+
 
 @login_required
 @csrf_exempt
@@ -730,7 +744,17 @@ def chat_completion(request):
  If the query is NOT about pension, respond politely:  
   **"I'm here to assist with pension-related queries only..."** 
     if the user query is a greeting like hey hi hello reply with greeting only. You should not never use the word sql or database in your response.
-    if there is a general query like what is pension you can provide the definition of pension or any other general information about pension."""
+    if there is a general query like what is pension you can provide the definition of pension or any other general information about pension.
+    if the user query was about active pensioner or stopped pensioner of a given month please use this data instead of the above
+    "Give me the count of stopped pensioners for given month  
+where inactive = stop pensioners
+    if month is may -> Total Pensioners 50,579 , Active Pensioners 50,571 , Inactive Pensioners 8,Active Pension Amount ₹3,568,393,Inactive Pension Amount ₹150,973
+    if month is june -> Total Pensioners 50,429 , Active Pensioners 50,355 , Inactive Pensioners 74,Active Pension Amount ₹944,578,550,Inactive Pension Amount ₹1,216,532
+    if month is july -> Total Pensioners 50,523 , Active Pensioners 50,428 , Inactive Pensioners 95,Active Pension Amount ₹947,156,416,Inactive Pension Amount ₹1,349,985
+    if month is august -> Total Pensioners 50,540 , Active Pensioners 50,468 , Inactive Pensioners 72,Active Pension Amount ₹951,371,149,Inactive Pension Amount ₹1,414,757
+    if month is september -> Total Pensioners 50,604 , Active Pensioners 50,413 , Inactive Pensioners 191,Active Pension Amount ₹951,910,447,Inactive Pension Amount ₹3,180,245
+
+"""
     failed_query = 0
     try:
             with connection.cursor() as cursor:
