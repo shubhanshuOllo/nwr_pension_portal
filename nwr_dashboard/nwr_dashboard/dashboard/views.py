@@ -2,7 +2,7 @@ from django.shortcuts import render,redirect
 from django.http import JsonResponse,HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 import pandas as pd
-from .models import NWRMasterData, nwr_zone_data,DebitScroll
+from .models import *
 import datetime
 from django.db import transaction
 from django.contrib.auth.decorators import login_required
@@ -23,6 +23,7 @@ from io import BytesIO
 from openpyxl.utils.dataframe import dataframe_to_rows
 import json
 import openpyxl
+from datetime import datetime
 
 load_dotenv()
 
@@ -569,7 +570,50 @@ def upload_mismatch(request):
 
             except Exception as e:
                 print("❌ Critical Error:", e)  
-                
+
+
+def process_commutational_data():
+    file = r'files\CommutationMismatchData (27) - Oct 24.xls'
+    # files\CommutationMismatchData (28) - Sept 24 (2).xls
+    try:
+        df = pd.read_excel(file, skiprows=4, engine='xlrd')
+    except Exception as e:
+        print(f"Error reading the Excel file: {e}")
+        return
+
+    # Convert Cessation Date column to datetime format
+    df['Cessation Date'] = pd.to_datetime(df['Cessation Date'], format="%d-%m-%Y", errors='coerce')
+
+    records = []
+    
+    for _, row in df.iterrows():
+        cessation_date = row['Cessation Date']
+        if pd.isna(cessation_date):  # Handle NaT values
+            cessation_date = None
+
+        records.append(Commutational_data(
+            arpan_ppo_number=row.get('ARPAN PPO Number', None),
+            ifsc_code=row.get('IFSC Code', None),
+            bank_ppo_number=row.get('Bank PPO Number', None),
+            pensioner_name=row.get('Pensioner Name', None),
+            scroll_acc_no=row.get('Scroll Acc No', None),
+            cessation_date=cessation_date,
+            arpan_basic=row.get('ARPAN Basic', None),
+            scroll_basic=row.get('Scroll Basic', None),
+            basic_diff=row.get('Basic Diff', None),
+            arpan_commutation=row.get('ARPAN Commutation', None),
+            scroll_commutation=row.get('Scroll Commutation', None),
+            commutation_diff=row.get('Commutation Diff', None),
+            gen_pdf=row.get('GEN_PDF', None),
+            month='202410'
+        ))
+    print(records)
+    if records:
+        Commutational_data.objects.bulk_create(records)
+        print(f"Successfully inserted {len(records)} records.")
+    else:
+        print("No records found in the Excel file.")
+
 def load_mismatch_page(request):
     """Load the mismatch.html template."""
     return render(request, 'mismatch.html')
@@ -597,6 +641,8 @@ arpan_exception: It stores data of unlinked pensioners. Unlinked pensioners are 
 debit_scroll: Contains transaction records, including file_number, type_of_pension, new_ppo, current_pensioner, pension_month, and financial details (basic_pension, deduction, da, etc.),pension.For any query regarding pension or overlay use the pension field.
 
 mismatch_data: It stores data which has different values in nwr_zone data and debit scroll. So any query with mismatch shall be answered from this. Identifies pension mismatches based on arpan_ppo_number, ifsc_code, arpan_pension_type, scroll_pension_type, and basic_diff, month. Overpayment and underment shall be calculated based on basic_diff. 
+
+commutational_data: This table stores mismatches in commutation values between nwr_zone_data and debit_scroll. If a query is specifically about commutation mismatch, fetch data from this table. Overpayment and underpayment should be calculated based on commutation_diff we have month colummn in it with value of 202409 whihc is yyyymm.
 
 nwr_master_data: Stores master pensioner data, including ppo_number, name, dob, pension_start_date, account_number, and age.
 nwr_zone_data: Maps pensioners to zones with details like ppo_zone_code, pensioner_id, old_ppo, new_ppo, emp_name, gender, cessation_date, and pension_amount,efp_amount.
@@ -640,6 +686,7 @@ only return sql query no need to return anything apart from it do not even add t
 
 
 api_keyy = os.getenv("OPENAI_API_KEY")
+
 @login_required
 @csrf_exempt
 def chat_completion(request):
