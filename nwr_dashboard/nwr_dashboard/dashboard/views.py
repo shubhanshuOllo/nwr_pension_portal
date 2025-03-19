@@ -644,6 +644,9 @@ mismatch_data: It stores data which has different values in nwr_zone data and de
 
 commutational_data: This table stores mismatches in commutation values between nwr_zone_data and debit_scroll. If a query is specifically about commutation mismatch, fetch data from this table. Overpayment and underpayment should be calculated based on commutation_diff we have month colummn in it with value of 202409 whihc is yyyymm.
 
+
+If the user's query is about new pensioners (e.g., pensioners who started receiving payments in a given month but were not present in the previous month), return a dictionary with the key 'newpensioners' and the value as the month number like if august it should be 8. If the month is not specified, ask the user for clarification.
+
 nwr_master_data: Stores master pensioner data, including ppo_number, name, dob, pension_start_date, account_number, and age.
 nwr_zone_data: Maps pensioners to zones with details like ppo_zone_code, pensioner_id, old_ppo, new_ppo, emp_name, gender, cessation_date, and pension_amount,efp_amount.
 If a user specifies debit scroll only use debit scroll table instead of mapping with nwr zone data or nwr_master_data.
@@ -674,18 +677,12 @@ WHERE age >= 80 ;
         SUM(CASE WHEN efp_amount > 0 THEN 1 ELSE 0 END) AS count_efp_greater_than_0,
         SUM(CASE WHEN efp_amount = 0 THEN 1 ELSE 0 END) AS count_efp_equal_to_0
     FROM nwr_zone_data; 
-
-"Give me the count of stopped pensioners for given month  
-where inactive = stop pensioners
-    if month is may -> Total Pensioners 50,579 , Active Pensioners 50,571 , Inactive Pensioners 8,Active Pension Amount ₹3,568,393,Inactive Pension Amount ₹150,973
-    if month is june -> Total Pensioners 50,429 , Active Pensioners 50,355 , Inactive Pensioners 74,Active Pension Amount ₹944,578,550,Inactive Pension Amount ₹1,216,532
-    if month is july -> Total Pensioners 50,523 , Active Pensioners 50,428 , Inactive Pensioners 95,Active Pension Amount ₹947,156,416,Inactive Pension Amount ₹1,349,985
-    if month is august -> Total Pensioners 50,540 , Active Pensioners 50,468 , Inactive Pensioners 72,Active Pension Amount ₹951,371,149,Inactive Pension Amount ₹1,414,757
-    if month is september -> Total Pensioners 50,604 , Active Pensioners 50,413 , Inactive Pensioners 191,Active Pension Amount ₹951,910,447,Inactive Pension Amount ₹3,180,245
+"Show me new pensioners for July 2024." → {"newpensioners": 7)}
 
 
 
 
+if the user query has anything to do with new pensioners 
 Only generate SELECT queries.
 Allow aggregation (COUNT, SUM, AVG, etc.).
 Ensure joins and filters are optimized.
@@ -693,9 +690,6 @@ Validate table and column names against the schema before generating queries.
 Do not assume missing information—ask for clarification if needed.
 only return sql query no need to return anything apart from it do not even add the keyword sql before it just return the query
 """
-
-
-
 
 
 api_keyy = os.getenv("OPENAI_API_KEY")
@@ -714,10 +708,23 @@ def chat_completion(request):
         {"role": "user", "content": user_query}  
     ]
 )
-    
+    new_pensioner = 0
     sql_query = response.choices[0].message.content.strip()
-    print(sql_query,"sql_query")
+   
+    try:
     
+        sql_query_dict = json.loads(sql_query)  # Convert string to dictionary
+       
+
+        if isinstance(sql_query_dict, dict) and "newpensioners" in sql_query_dict:
+            new_pensioner = 1
+            func = sql_query_dict["newpensioners"]
+            result = get_pension_stats_last_6_months(func)
+            
+        else:
+            print("Key 'newpensioners' not found in the response.")
+    except json.JSONDecodeError:
+        pass
     
 
     if not is_safe_sql(sql_query):
@@ -756,27 +763,28 @@ where inactive = stop pensioners
 
 """
     failed_query = 0
-    try:
-            with connection.cursor() as cursor:
-                cursor.execute(sql_query)
-                columns = [col[0] for col in cursor.description]
-                rows = cursor.fetchall()
-                result = [dict(zip(columns, row)) for row in rows]
-    except Exception as e:
-            sql_error = str(e)
-            response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "system", "content": forward_prompt}]
-            )
-            result = response.choices[0].message.content.strip()    
-            failed_query = 1
-            
-    if failed_query==0:
-        result = [
-        {columns[i]: (float(value) if isinstance(value, Decimal) else value) for i, value in enumerate(row)}
-        for row in rows
-        ]
-    format_prompt = f"""You are a formatting expert. Please format this data based on the user query. It should be easy to read and very presentable. Also tell some basic insights about the data. Just basic insights. Use the user query to tell user from where the data is being fetched. Dont use the word database or table. If data is being fetched from nwr_zone_table just say that data is being fetched from nwr_zone sheet or record. Do this for all the data that is being fetched. 
+    if new_pensioner == 0:
+        try:
+                with connection.cursor() as cursor:
+                    cursor.execute(sql_query)
+                    columns = [col[0] for col in cursor.description]
+                    rows = cursor.fetchall()
+                    result = [dict(zip(columns, row)) for row in rows]
+        except Exception as e:
+                sql_error = str(e)
+                response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[{"role": "system", "content": forward_prompt}]
+                )
+                result = response.choices[0].message.content.strip()    
+                failed_query = 1
+                
+        if failed_query==0:
+            result = [
+            {columns[i]: (float(value) if isinstance(value, Decimal) else value) for i, value in enumerate(row)}
+            for row in rows
+            ]
+    format_prompt = f"""You are a formatting expert. Please format this data based on the user query. It should be easy to read and very presentable. Also tell some basic insights about the data. Just basic insights. Use the user query to tell user from where the data is being fetched. For new pensioners the data is being fetched from debit scroll. Dont use the word database or table. If data is being fetched from nwr_zone_table just say that data is being fetched from nwr_zone sheet or record. Do this for all the data that is being fetched. 
     data: {result}
     user query: "{user_query}"
     sql query: "{sql_query}"
