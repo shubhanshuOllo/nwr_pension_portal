@@ -83,10 +83,10 @@ def bulk_insert_records(new_records):
                 VALUES (%(account_number)s, %(ppo_number)s, %(name)s, %(dob)s, %(pension_start_date)s, %(date_of_retirement)s, %(age)s)
             """
             cursor.executemany(insert_query, new_records)
-@csrf_exempt
-@login_required
-def upload_master_excel(request):
-    if request.method == 'POST':
+@csrf_exempt                                                                          
+@login_required             
+def upload_master_excel(request):            
+    if request.method == 'POST':              
         if 'file' in request.FILES:
             excel_file = request.FILES['file']
 
@@ -457,30 +457,74 @@ def clean_account_number(value):
 # @login_required
 def get_rule(request):
     # Extract month and rule from request
-    month = request.GET.get('month')
-    rule = request.GET.get('rule', '').strip()
+    # month = request.GET.get('month')
+    month = request.GET.getlist("month")  
+    rule = request.GET.get("rule", "").strip()
+    
+    if len(month)> 1:
+        if month[0] == month[1]:
+            month_numbers = [int(m.split("-")[1]) for m in month if "-" in m]
+            month_numbers.pop(1) 
+            month = month_numbers
+        else:
+            month_numbers = [int(m.split("-")[1]) for m in month if "-" in m]
+            month = month_numbers
+    else:
+        month_numbers = [int(m.split("-")[1]) for m in month if "-" in m]
+        month = month_numbers
+        # else:
 
-    # print(month,rule,"month and rule")
+
+
+    
+    # month = data.get(month)
+    # rule = request.GET.get('rule', '').strip()
+
+   
     data = []
-    if rule == "1":  
-        data = overall_payment(month)
-    if rule == "2":  
-       
-        data = age_metrics(month)
-    if rule == "3":  
-        data = family_pension_conversion(month)
-    if rule == "4":  
-        data = revised_pensioners(month)
-        # data={"Success":"true"}
-    if rule == "5":
-        data=get_pension_stats_last_6_months(month)
+    rule_comp = 0
+    
+    if len(month)> 1 and rule in ["1","2"]:
+        
+        rule_comp = 1
+        if rule == "1":                                                                                                                 
+            data = comp_overall_payment(month)
+        if rule == "2":                                                                                                                                
+            data = comp_age_metrics(month)                                      
+        if rule == "3":                                                                                                                                                                          
+            data = comp_family_pension_conversion(month)
+        if rule == "4":                                                                 
+            data = comp_revised_pensioners(month)
+        if rule == "6":
+            data=comp_active_pensioner(month)                                                                                                   
+        
+    else:
+        month_temp = month[0]
+        month = month_temp
+        if rule == "1":  
+            data = overall_payment(month)
 
-    if rule == "6":
-        data=active_pensioner(month)
+        if rule == "2":  
+            data = age_metrics(month)
 
-    if rule == "7":
-        data=get_efp_count()
+        if rule == "3":  
+            data = family_pension_conversion(month)
 
+        if rule == "4":  
+            data = revised_pensioners(month)
+
+        if rule == "5":
+            data=get_pension_stats_last_6_months(month)
+
+        if rule == "6":
+            data=active_pensioner(month)
+
+        if rule == "7":
+            data=get_efp_count()
+    data["rule_comp"] = rule_comp
+    data["rule"] = rule
+    
+    
     return JsonResponse(data, safe=False)
 
 
@@ -493,7 +537,7 @@ def upload_mismatch(request):
         if 'file' in request.FILES:
             excel_file = request.FILES['file']
             file_name = excel_file.name.lower()
-            if file_name.endswith('.xlsx'):
+            if file_name.endswith('.xlsx'):                                             
                 engine = "openpyxl"  # For modern Excel files
             elif file_name.endswith('.xls'):
                 engine = "xlrd"  # For older Excel files
@@ -864,11 +908,6 @@ def generate_excl(request):
         rule = 5
     elif 'new' in rule_json:
         rule = 4
-
-
-
-
-    
 
     if rule == 1:
         headers = list(rule_data[0].keys())

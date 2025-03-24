@@ -10,14 +10,15 @@ from datetime import date
 from django.db.models import Count
 from django.db import connection
 from django.db.models import Sum, F, Case, When, Value
-
-
 import pandas as pd
 
 
 
 def get_pension_stats_last_6_months(main_month):
-    count_zone_change = zone_change_data(main_month)
+    try:
+        count_zone_change = zone_change_data(main_month)
+    except:
+        count_zone_change = ""
     # count_zone_change = 1
 
     dates = {
@@ -125,7 +126,7 @@ def get_pension_stats_last_6_months(main_month):
 #                 age_groups["80-85"]["pension"] += pension
         
   
-       
+
 
 #     return  total_eighty,age_groups, total_outlay
 
@@ -263,7 +264,7 @@ def overall_payment(month):
 #         if new_ppo:
 #             ds_dict[new_ppo] = basic_pay
 
-  
+                                                                                                                                                          
 #     nwr_data = nwr_zone_data.objects.values('old_ppo', 'new_ppo', 'pension_amount', 'efp_amount')
 
    
@@ -713,3 +714,64 @@ def get_efp_count():
     }
     
     return response_data
+
+
+def comp_overall_payment(month):
+    i = month[0]
+    j = month[1]
+    month_comparison_dict = {}
+    while i <= j:
+        response = overall_payment(i)
+        month_comparison_dict[i] = response["data"]["rule_data"]
+        i+=1
+    final_dict = {}
+    final_dict = {
+        "success": "True",
+        "rule_data": month_comparison_dict
+    }
+    return final_dict
+
+
+def comp_age_metrics(month):
+    i = month[0]
+    j = month[1]
+    month_comparison_dict = {}
+    while i <= j:
+        response = age_metrics(i)
+        month_comparison_dict[i] = response["data"]["rule_data"]
+        i+=1
+    final_dict = {}
+    final_dict = {
+        "success": "True",
+        "rule_data": month_comparison_dict
+    }
+    return final_dict
+
+def comp_family_pension_conversion(month):
+    i = month[0]
+    j = month[1]
+    month_comparison_dict = {}
+    while i <= j:
+        response = family_pension_conversion(i)
+        month_comparison_dict[i] = response["data"]["rule_data"]
+        i+=1
+    return month_comparison_dict
+def comp_revised_pensioners(month):
+    i = month[0]
+    j = month[1]
+    month_comparison_dict = {}
+    while i <= j:
+        response = revised_pensioners(i)
+        month_comparison_dict[i] = response["data"]["rule_data"]
+        i+=1
+    return month_comparison_dict
+
+def comp_active_pensioner(month):
+    i = month[0]
+    j = month[1]
+    month_comparison_dict = {}
+    while i <= j:
+        response = active_pensioner(i)
+        month_comparison_dict[i] = response["data"]["rule_data"]
+        i+=1
+    return month_comparison_dict
