@@ -113,7 +113,7 @@ body {
 .card {
     background: #F8FAFC;
     border-radius: 10px;
-    padding: 1.5rem;
+    padding: 12px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     margin: 0;  /* Remove the margin we added */
     height: 98%;
@@ -661,6 +661,7 @@ canvas {
 
 /* Update these styles for the middle column */
 .middle-column {
+    overflow: auto;
     padding: 12px;
     background-color: #F8FAFC;
 
