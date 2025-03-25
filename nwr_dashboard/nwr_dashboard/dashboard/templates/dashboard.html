@@ -1589,7 +1589,7 @@
                 if (!response.ok) {
                     throw new Error(`Network response was not ok, status: ${response.status}`);
                 }
-        
+                usedColors.clear();
                 const data = await response.json();
                 
                 return data;
@@ -2988,7 +2988,7 @@
             const lineDatasets = ageCategories.map(ageGroup => ({
                 label: `Age ${ageGroup}`,
                 data: months.map(month => response[month]?.[ageGroup]?.count || 0),
-                borderColor: getRandomColor(),
+                borderColor: getUniqueColor(),
                 tension: 0.4,
                 fill: false
             }));
@@ -3084,7 +3084,7 @@
                       labels: pieLabels,
                       datasets: [{
                           data: pieData,
-                          backgroundColor: pieLabels.map(() => getRandomColor()),
+                          backgroundColor: pieLabels.map(() => getUniqueColor()),
                           borderColor: '#FFFFFF',
                           borderWidth: 2
                       }]
@@ -3116,7 +3116,7 @@
               let lineDatasets = pieLabels.map(metric => ({
                   label: metric,
                   data: availableMonths.map(month => response[month]?.[metric] || 0),
-                  borderColor: getRandomColor(),
+                  borderColor: getUniqueColor(),
                   fill: false,
                   tension: 0.2
               }));
@@ -3197,7 +3197,7 @@
                         labels: pieLabels,
                         datasets: [{
                             data: pieData,
-                            backgroundColor: pieLabels.map(() => getRandomColor()),
+                            backgroundColor: pieLabels.map(() => getUniqueColor()),
                             borderColor: '#FFFFFF',
                             borderWidth: 2
                         }]
@@ -3235,6 +3235,17 @@
     
     function getRandomColor() {
         return `#${Math.floor(Math.random() * 16777215).toString(16)}`;
+    }
+    const usedColors = new Set(); // Keep track of already used colors
+
+    function getUniqueColor() {
+        let color;
+        do {
+            color = getRandomColor();
+        } while (usedColors.has(color)); // Regenerate if the color is already used
+
+        usedColors.add(color); // Store the color to prevent reuse
+        return color;
     }
     
     function updateCompMiddle(response, rule) {
