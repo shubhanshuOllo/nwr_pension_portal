@@ -868,7 +868,7 @@ def generate_excl(request):
 
     rule_json = request.GET.get('rule_data')
     month = request.GET.get('month')
-    year = 2024 #static year
+    year = 2024 
     month = str(month).zfill(2)
     prev_year = str(year)
 
@@ -937,8 +937,8 @@ def generate_excl(request):
             results = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
         unlink_df = pd.DataFrame(results)
-        unlink_df = unlink_df.fillna('')
-
+        unlink_df_temp = unlink_df.fillna('')
+        unlink_df = unlink_df_temp.drop("id",axis = 1)
         # Underpayment Query
         query_underpayment = """
             SELECT e.*, md.* 
@@ -953,7 +953,8 @@ def generate_excl(request):
             underpayment_results = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
         underpayment_results_df = pd.DataFrame(underpayment_results)
-        underpayment_results_df = underpayment_results_df.fillna('')
+        underpayment_results_df_temp = underpayment_results_df.drop("id", axis= 1)
+        underpayment_results_df = underpayment_results_df_temp.fillna('')
        
 
         # Overpayment Query (Fixing the basic_diff condition)
@@ -970,7 +971,9 @@ def generate_excl(request):
             overpayment_results = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
         
-        overpayment_results_df = pd.DataFrame(overpayment_results)
+        overpayment_results_df_temp = pd.DataFrame(overpayment_results)
+        overpayment_results_df =  overpayment_results_df_temp.drop("id",axis = 1)
+        
         overpayment_results_df = overpayment_results_df.fillna('')
 
         insert_df_into_sheet(unlink_df, unlink_sheet)
