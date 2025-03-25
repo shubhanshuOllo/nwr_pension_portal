@@ -2911,7 +2911,9 @@
               .join("\n");
           }
           function filedownload(){
-            month = document.getElementById('dateSelector').value;
+            //month = document.getElementById('dateSelector').value;
+            const toMonthInput = document.getElementById("to-month").value;
+            const month = toMonthInput.split("-")[1];
             var loading_div = document.getElementById("loading_div");
                 loading_div.style.display = 'flex'
             $.ajax({
