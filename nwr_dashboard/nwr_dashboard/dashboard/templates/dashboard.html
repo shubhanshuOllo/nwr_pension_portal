@@ -1573,7 +1573,8 @@
           }
 
           async function fetchRuleData(ruleId, monthList) {
-            console.log("Fetching rule data:", ruleId, monthList);
+            
+
         
             try {
                 // Convert the array into multiple query parameters
@@ -1590,7 +1591,7 @@
                 }
         
                 const data = await response.json();
-                console.log("API Response:", data);
+                
                 return data;
             } catch (error) {
                 console.error("Error fetching rule data:", error);
@@ -1601,9 +1602,9 @@
             // Function to handle rule selection
             async function handleRuleSelection(ruleId, month) {
                 try {
-                    console.log(month,"hendle rule select month")
+                   
                     const response = await fetchRuleData(ruleId, month);  
-                    console.log(response,"response")  
+                   
                     if (response && response.success) {
                         window.currentResponse = response; // Store the response
                         
@@ -1612,8 +1613,7 @@
                           updateMiddleColumn(response);
                         }
                         else{
-                          console.log(response.rule_comp,"rule comp")
-                          console.log("testing")
+                         
 
                           updateCompCharts(response.rule_data,response.rule);
                        
@@ -1621,7 +1621,7 @@
                         }
                         
                     } else {
-                        console.log(1)
+                       
                         {% comment %} initializeDefaultCharts(); {% endcomment %}
                     }
                 } catch (error) {
@@ -2216,7 +2216,7 @@
             });
 
             sendButtons.forEach((button, index) => {
-              console.log(index);
+             
               button.addEventListener("click", () => {
                 const fileInput = fileInputs[index];
                 const file = fileInput.files[0];
@@ -2556,7 +2556,7 @@
             messageInput.addEventListener("keypress", function (e) {
               if (e.key === "Enter") {
                 const text = this.value.trim();
-                console.log(text);
+               
                 if (text) {
                   submit_chat();
 
@@ -2580,12 +2580,13 @@
 
               if (fromMonth) monthList.push(fromMonth);
               if (toMonth) monthList.push(toMonth);
-              console.log(monthList,"fromMonthInput")
+              
               
               const monthDropdown = document.getElementById("dateSelector");
               const selectedMonth = monthDropdown ? monthDropdown.value : "9";
 
               // Use the existing handleRuleSelection function with ruleId and month
+             
               await handleRuleSelection(ruleId, monthList);
             } catch (error) {
               console.error("Error in rule/function selection:", error);
@@ -2628,55 +2629,77 @@
                       });
                   });
           } {% endcomment %}
-
+          function handleClick(event) {
+            const item = event.currentTarget; // Get the clicked item
+            notificationItems.forEach((i) => i.classList.remove("active"));
+            item.classList.add("active");
+          
+            const headerSpan = item.querySelector(".notification-header span:first-child");
+            const ruleName = headerSpan ? headerSpan.textContent.trim() : "";
+            
+            const ruleId = ruleIdMap[ruleName] || "1";
+          
+          
+            handleRuleOrFunctionSelect(ruleId);
+          }
           function initializeNotificationHandlers() {
             console.log("Notification handlers initialized.");
-            const notificationItems =
-              document.querySelectorAll(".notification-item");
+          
+            const notificationItems = document.querySelectorAll(".notification-item");
+          
             const ruleIdMap = {
               "Overall underpayment/overpayment": "1",
               "Age Metrics": "2",
               "Family Pension Conversion": "3",
               "Pay commission revisions": "4",
-              'Active Pensioner': '6',
-              'Enhanced Family Pension': '7',
-              'New Pensioners': '5',
+              "Active Pensioner": "6",
+              "Enhanced Family Pension": "7",
+              "New Pensioners": "5",
             };
-
+          
             function getRuleIdFromActiveItem() {
-              const activeItem = document.querySelector(
-                ".notification-item.active"
-              );
+              const activeItem = document.querySelector(".notification-item.active");
               if (activeItem) {
-                const headerSpan = activeItem.querySelector(
-                  ".notification-header span:first-child"
-                );
-                const ruleName = headerSpan.textContent.trim();
+                const headerSpan = activeItem.querySelector(".notification-header span:first-child");
+                const ruleName = headerSpan ? headerSpan.textContent.trim() : "";
                 return ruleIdMap[ruleName] || "1";
               }
               return "1";
             }
-
+          
+            function handleClick(event) {
+              const item = event.currentTarget;
+          
+              notificationItems.forEach((i) => i.classList.remove("active"));
+          
+              item.classList.add("active");
+          
+              const headerSpan = item.querySelector(".notification-header span:first-child");
+              const ruleName = headerSpan ? headerSpan.textContent.trim() : "";
+          
+              const ruleId = ruleIdMap[ruleName] || "1";
+             
+          
+              handleRuleOrFunctionSelect(ruleId);
+            }
+          
+            // ✅ Attach event listeners only if not already assigned
             notificationItems.forEach((item) => {
-              item.addEventListener("click", () => {
-                notificationItems.forEach((i) => i.classList.remove("active"));
-
-                item.classList.add("active");
-
-                const headerSpan = item.querySelector(
-                  ".notification-header span:first-child"
-                );
-                const ruleName = headerSpan.textContent.trim();
-
-                const ruleId = ruleIdMap[ruleName] || "1";
-
-                handleRuleOrFunctionSelect(ruleId);
-              });
+              if (!item.dataset.listenerAdded) {
+                item.addEventListener("click", handleClick);
+                item.dataset.listenerAdded = "true"; // Mark it to prevent duplicates
+              }
             });
-
+          
+          
+          
             const finalRuleId = getRuleIdFromActiveItem();
+           
+          
             handleRuleOrFunctionSelect(finalRuleId);
           }
+          
+          
 
           function addMessage(text, isBot = false) {
             const chatMessages = document.querySelector(".chat-messages");
@@ -2834,7 +2857,7 @@
                   let result;
                   try {
                     result = JSON.parse(xhr.responseText);
-                    console.log("Result:", result);
+                   
                   } catch (error) {
                     console.error("Invalid JSON response:", xhr.responseText);
                     addMessage("Error: Invalid response format.", true);
@@ -3026,7 +3049,7 @@
                   .map(Number) // Convert to numbers
                   .sort((a, b) => a - b); // Ensure months are in order
           
-              console.log("Available Months:", availableMonths);
+             
           
               
               let monthLabels = availableMonths.map(month => monthNames[month] || `Month ${month}`);
@@ -3052,7 +3075,7 @@
               pieLabels = filteredData.map(item => item.label);
               pieData = filteredData.map(item => item.value);
           
-              console.log("Adjusted Pie Chart Data:", pieData);
+             
           
               // ✅ Create Pie Chart
               window.pieChart = new Chart(pieCtx, {
@@ -3098,7 +3121,7 @@
                   tension: 0.2
               }));
           
-              console.log("Line Chart Data:", lineDatasets);
+           
           
               // ✅ Create Line Chart
               window.lineChart = new Chart(lineCtx, {
@@ -3165,7 +3188,7 @@
                 );
     
               
-                console.log("Aggregated Pie Chart Data:", pieData);
+              
     
               
                 window.pieChart = new Chart(pieCtx, {
@@ -3223,7 +3246,7 @@
           }
   
         
-          console.log("Response Data:", response);
+        
   
           
           updateCompRule(rule);
@@ -3263,7 +3286,7 @@
               let data = response[month];
   
             
-              console.log(`Month: ${monthNames[month] || month}`, data);
+             
   
               totalMatched = Number(data.matched_records || 0);  
               totalUnlinked = Number(data.unlinked_records || 0); 
@@ -3318,7 +3341,7 @@ else if (rule == 2) {
             return;
         }
 
-        console.log("Response Data for Rule 2:", response);
+       
 
         // Call function to build the UI structure
         updateCompRule(rule);
