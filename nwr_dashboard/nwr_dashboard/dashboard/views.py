@@ -144,7 +144,7 @@ def upload_master_excel(request):
                         new_records.append(record_data)
 
                 except Exception as e:
-                    print(f"⚠️ Error processing row {row}: {e}")  
+                    print(f" Error processing row {row}: {e}")  
         
            
             if new_records:
@@ -157,7 +157,7 @@ def upload_master_excel(request):
                     for i in range(0, len(update_records), chunk_size):
                         bulk_update_records(update_records[i:i+chunk_size])
 
-            print("✅ Upload completed successfully!")  # Debugging
+            print(" Upload completed successfully!")  # Debugging
             return JsonResponse({'status': 'success'}, status=200)
         
         return JsonResponse({'status': 'failed', 'message': 'No file provided'}, status=400)
@@ -279,12 +279,12 @@ def upload_nwr_zone(request):
                         new_records.append(record_data)
 
                 except Exception as e:
-                    print(f"⚠️ Error processing row {row}: {e}")  
+                    print(f" Error processing row {row}: {e}")  
 
-            # ✅ Reduce batch size for updates
+            #  Reduce batch size for updates
             chunk_size = 200  
 
-            # ✅ Bulk Insert New Records
+            #  Bulk Insert New Records
             if new_records:
                 with connection.cursor() as cursor:
                     insert_query = """
@@ -294,7 +294,7 @@ def upload_nwr_zone(request):
                     """
                     cursor.executemany(insert_query, new_records)
 
-            # ✅ Bulk Update Existing Records (Using Transactions for Faster Commits)
+            #  Bulk Update Existing Records (Using Transactions for Faster Commits)
             if update_records:
                 update_query = """
                     UPDATE nwr_zone_data
@@ -317,7 +317,7 @@ def upload_nwr_zone(request):
                         with connection.cursor() as cursor:
                             cursor.executemany(update_query, update_records[i:i+chunk_size])
 
-            print("✅ Upload completed successfully!")  
+            print(" Upload completed successfully!")  
             return JsonResponse({'status': 'success'}, status=200)
         
         return JsonResponse({'status': 'failed', 'message': 'No file provided'}, status=400)
@@ -443,7 +443,7 @@ def debit_scroll(request):
                 return JsonResponse({'status': 'success'}, status=200)        
 
             except Exception as e:
-                print("❌ Critical Error:", e)    
+                print(" Critical Error:", e)    
  
 def clean_account_number(value):
     """Convert to string, strip spaces, and remove decimals if any."""
@@ -460,12 +460,15 @@ def get_rule(request):
     # month = request.GET.get('month')
     month = request.GET.getlist("month")  
     rule = request.GET.get("rule", "").strip()
+    print(month,"month")
+    print(rule,"rule")
+    # generate_data_excel()
     
     if len(month)> 1:
         if month[0] == month[1]:
             month_numbers = [int(m.split("-")[1]) for m in month if "-" in m]
             month_numbers.pop(1) 
-            month = month_numbers
+            month = month_numbers 
         else:
             month_numbers = [int(m.split("-")[1]) for m in month if "-" in m]
             month = month_numbers
@@ -484,7 +487,7 @@ def get_rule(request):
     data = []
     rule_comp = 0
     
-    if len(month)> 1 and rule in ["1","2"]:
+    if len(month)> 1 and rule in ["1","2","3","6"]:
         
         rule_comp = 1
         if rule == "1":                                                                                                                 
@@ -523,7 +526,7 @@ def get_rule(request):
             data=get_efp_count()
     data["rule_comp"] = rule_comp
     data["rule"] = rule
-    
+    print(data,"data")
     
     return JsonResponse(data, safe=False)
 
@@ -613,7 +616,7 @@ def upload_mismatch(request):
                 # return JsonResponse({'status': 'success'}, status=200)  
 
             except Exception as e:
-                print("❌ Critical Error:", e)  
+                print("Critical Error:", e)  
 
 
 def process_commutational_data():
@@ -891,7 +894,7 @@ def generate_excl(request):
     
     wb = openpyxl.Workbook()
     ws = wb.active
-
+    print(rule_data,"rule_data")
     
     rule = 2  
     if isinstance(rule_data, dict):
@@ -957,7 +960,7 @@ def generate_excl(request):
         underpayment_results_df = underpayment_results_df_temp.fillna('')
        
 
-        # Overpayment Query (Fixing the basic_diff condition)
+        
         query_overpayment = """
             SELECT e.*, md.* 
             FROM mismatch_data AS e  
@@ -996,3 +999,50 @@ def insert_df_into_sheet(df, sheet):
         for r_idx, row in enumerate(dataframe_to_rows(df, index=False, header=True), start=1):
             for c_idx, value in enumerate(row, start=1):
                 sheet.cell(row=r_idx, column=c_idx, value=value)
+
+
+# def generate_data_excel():
+    # Fetch all required data in one query
+    # pension_months = ["202409", "202408", "202407", "202406", "202405"]
+    # debit_scrolls = DebitScroll.objects.filter(pension_month__in=pension_months).values()
+
+    # # Convert QuerySet to DataFrame
+    # df = pd.DataFrame(list(debit_scrolls))
+
+    # if df.empty:
+    #     return "No data available"
+
+    # # Group by 'pension_month'
+    # grouped_df = df.groupby("pension_month")
+
+    # # Define the Excel file path
+    # file_path = "debit_scrolls.xlsx"
+
+    # # Write to Excel with each pension_month as a separate sheet
+    # with pd.ExcelWriter(file_path, engine="xlsxwriter") as writer:
+    #     for pension_month, group in grouped_df:
+    #         sheet_name = f"{pension_month}_Data"
+    #         group.to_excel(writer, sheet_name=sheet_name, index=False)
+    # zone_data = nwr_zone_data.objects.all().values()  
+    # # Convert to DataFrame
+    # zone_data_df = pd.DataFrame(list(zone_data))
+    # # Save to Excel
+    # file_path = "nwr_zone_data.xlsx"
+    # with pd.ExcelWriter(file_path, engine="xlsxwriter") as writer:
+    #     zone_data_df.to_excel(writer, sheet_name="Sheet1", index=False)
+
+    # master_data = NWRMasterData.objects.all().values()
+    # master_data_df = pd.DataFrame(list(master_data))
+    # file_path = "Master_data_sheet.xlsx"
+    # with pd.ExcelWriter(file_path,engine = "xlsxwriter") as writer:
+    #     master_data_df.to_excel(writer, sheet_name="Sheet1", index=False)
+
+
+
+    
+    # commutation_data = mismatch_data.objects.all().values()
+    # commutation_data_df = pd.DataFrame(list(commutation_data))
+    # file_path = "mismatch_data.xlsx"
+    # with pd.ExcelWriter(file_path,engine = "xlsxwriter") as writer:
+    #    commutation_data_df.to_excel(writer, sheet_name="Sheet1", index=False)
+    # print("function_worked")

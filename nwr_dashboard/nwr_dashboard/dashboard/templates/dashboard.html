@@ -1250,7 +1250,7 @@
                       });
                   }
                   else {
-                // Rule 2: Create line chart for age-wise distribution
+               
                 const ageRanges = Object.keys(ruleData).sort((a, b) => {
                   const aStart = parseInt(a.split("-")[0]);
                   const bStart = parseInt(b.split("-")[0]);
@@ -1336,7 +1336,7 @@
                             }
                         });
 
-                        // Rule 2: Create pie chart for age distribution
+                
                         pieChart = new Chart(pieCtx, {
                             type: 'pie',
                             data: {
@@ -1607,7 +1607,7 @@
                    
                     if (response && response.success) {
                         window.currentResponse = response; // Store the response
-                        
+                        console.log()
                         if(response.rule_comp == "0"){
                           updateChartsWithApiData(response);
                           updateMiddleColumn(response);
@@ -2683,11 +2683,11 @@
               handleRuleOrFunctionSelect(ruleId);
             }
           
-            // ✅ Attach event listeners only if not already assigned
+           
             notificationItems.forEach((item) => {
               if (!item.dataset.listenerAdded) {
                 item.addEventListener("click", handleClick);
-                item.dataset.listenerAdded = "true"; // Mark it to prevent duplicates
+                item.dataset.listenerAdded = "true"; 
               }
             });
           
@@ -2916,6 +2916,15 @@
             const month = toMonthInput.split("-")[1];
             var loading_div = document.getElementById("loading_div");
                 loading_div.style.display = 'flex'
+            if (!window.currentResponse.data.rule_data) {
+                  Swal.fire({
+                      title: "Missing Data",
+                      text: "Please specify the month for which the report should be downloaded.",
+                      icon: "warning",
+                      confirmButtonText: "OK"
+                  });
+                  return;
+              }
             $.ajax({
                 type:'GET',
                 data:{"rule_data":JSON.stringify(window.currentResponse.data.rule_data),"month":month},
@@ -2960,287 +2969,415 @@
           }
       });
 
-      function updateCompCharts(response, rule) {
-        try {
-            if (!response || typeof response !== "object") {
-                console.error("Invalid response data:", response);
-                return;
+  function updateCompCharts(response, rule) {
+    console.log(rule, "rule");
+    try {
+        if (!response || typeof response !== "object") {
+            console.error("Invalid response data:", response);
+            return;
+        }
+
+        const monthNames = {
+            1: "January", 2: "February", 3: "March", 4: "April",
+            5: "May", 6: "June", 7: "July", 8: "August",
+            9: "September", 10: "October", 11: "November", 12: "December"
+        };
+
+        const months = Object.keys(response)
+            .filter(key => key !== "rule_comp" && !isNaN(key))
+            .map(Number)
+            .sort((a, b) => a - b);
+
+        if (months.length === 0) {
+            console.error("No valid months found in response");
+            return;
+        }
+
+        const latestMonth = months[months.length - 1];
+        const ageCategories = Object.keys(response[latestMonth] || {});
+
+        const lineLabels = months.map(month => monthNames[month] || `Month ${month}`);
+        const lineDatasets = ageCategories.map(ageGroup => ({
+            label: `Age ${ageGroup}`,
+            data: months.map(month => response[month]?.[ageGroup]?.count || 0),
+            borderColor: getUniqueColor(),
+            tension: 0.4,
+            fill: false
+        }));
+
+        const lineCanvas = document.getElementById("lineChart");
+        const pieCanvas = document.getElementById("pieChart");
+
+        if (!lineCanvas || !pieCanvas) {
+            console.error("Chart elements not found in DOM");
+            return;
+        }
+
+        function destroyChart(chartInstance) {
+            if (chartInstance && typeof chartInstance.destroy === "function") {
+                chartInstance.destroy();
             }
-    
-            const monthNames = {
-                1: "January", 2: "February", 3: "March", 4: "April",
-                5: "May", 6: "June", 7: "July", 8: "August",
-                9: "September", 10: "October", 11: "November", 12: "December"
-            };
-    
-            const months = Object.keys(response)
-                .filter(key => key !== "rule_comp" && !isNaN(key))
-                .map(Number)
-                .sort((a, b) => a - b);
-    
-            if (months.length === 0) {
-                console.error("No valid months found in response");
-                return;
-            }
-    
-            const latestMonth = months[months.length - 1];
-            const ageCategories = Object.keys(response[latestMonth] || {});
-    
-            const lineLabels = months.map(month => monthNames[month] || `Month ${month}`);
-            const lineDatasets = ageCategories.map(ageGroup => ({
-                label: `Age ${ageGroup}`,
-                data: months.map(month => response[month]?.[ageGroup]?.count || 0),
+        }
+
+        destroyChart(window.lineChart);
+        destroyChart(window.pieChart);
+
+        function resetCanvas(canvas) {
+            const parent = canvas.parentNode;
+            parent.removeChild(canvas);
+            const newCanvas = document.createElement("canvas");
+            newCanvas.id = canvas.id;
+            newCanvas.width = canvas.width;
+            newCanvas.height = canvas.height;
+            parent.appendChild(newCanvas);
+            return newCanvas.getContext("2d");
+        }
+
+        const lineCtx = resetCanvas(lineCanvas);
+        const pieCtx = resetCanvas(pieCanvas);
+
+        if (rule === "1") { 
+            Object.keys(response).forEach(month => {
+                if (!isNaN(month)) { 
+                    Object.keys(response[month]).forEach(metric => {
+                        let value = response[month][metric];
+                        if (typeof value === 'object' && value !== null) {
+                            response[month][metric] = parseFloat(value);
+                        }
+                    });
+                }
+            });
+
+            let availableMonths = Object.keys(response).map(Number).sort((a, b) => a - b);
+            let monthLabels = availableMonths.map(month => monthNames[month] || `Month ${month}`);
+            let pieLabels = availableMonths.length ? Object.keys(response[availableMonths[0]]) : [];
+
+            let pieData = pieLabels.map(metric =>
+                availableMonths.reduce((total, month) => total + (response[month]?.[metric] || 0), 0)
+            );
+
+            let excludeLargeMetric = "matched_records"; 
+            let filteredData = pieLabels.map((label, index) => ({
+                label, 
+                value: pieData[index]
+            }))
+            .filter(item => item.label !== excludeLargeMetric && item.value > 0)
+            .sort((a, b) => b.value - a.value);
+
+            pieLabels = filteredData.map(item => item.label);
+            pieData = filteredData.map(item => item.value);
+
+            window.pieChart = new Chart(pieCtx, {
+                type: 'pie',
+                data: {
+                    labels: pieLabels,
+                    datasets: [{
+                        data: pieData,
+                        backgroundColor: pieLabels.map(() => getUniqueColor()),
+                        borderColor: '#FFFFFF',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        title: {
+                            display: true,
+                            text: `Total Distribution by Metric (All Months)`
+                        }
+                    }
+                }
+            });
+
+            let lineDatasets = pieLabels.map(metric => ({
+                label: metric,
+                data: availableMonths.map(month => response[month]?.[metric] || 0),
                 borderColor: getUniqueColor(),
-                tension: 0.4,
-                fill: false
+                fill: false,
+                tension: 0.2
             }));
-    
-            const lineCanvas = document.getElementById("lineChart");
-            const pieCanvas = document.getElementById("pieChart");
-    
-            if (!lineCanvas || !pieCanvas) {
-                console.error("Chart elements not found in DOM");
-                return;
+
+            window.lineChart = new Chart(lineCtx, {
+                type: 'line',
+                data: {
+                    labels: monthLabels,
+                    datasets: lineDatasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top' },
+                        title: {
+                            display: true,
+                            text: `Monthly Trends by Metric`
+                        }
+                    },
+                    scales: {
+                        x: { title: { display: true, text: "Months" } },
+                        y: { title: { display: true, text: "Count" } }
+                    }
+                }
+            });
+        } 
+        else if (rule == 2) { 
+            window.lineChart = new Chart(lineCtx, {
+                type: 'line',
+                data: {
+                    labels: lineLabels,
+                    datasets: lineDatasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Pensioner Count by Age Group Over Months'
+                        }
+                    }
+                }
+            });
+
+            let pieLabels = ageCategories;
+            let pieData = ageCategories.map(ageGroup =>
+                months.reduce((total, month) => total + (response[month]?.[ageGroup]?.count || 0), 0)
+            );
+
+            window.pieChart = new Chart(pieCtx, {
+                type: 'pie',
+                data: {
+                    labels: pieLabels,
+                    datasets: [{
+                        data: pieData,
+                        backgroundColor: pieLabels.map(() => getUniqueColor()),
+                        borderColor: '#FFFFFF',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        title: {
+                            display: true,
+                            text: `Total Pensioner Distribution by Age Group (All Months)`
+                        }
+                    }
+                }
+            });
+        }
+        else if (rule == 3) {
+          Object.keys(response).forEach(month => {
+              if (!isNaN(month)) {
+                  Object.keys(response[month]).forEach(metric => {
+                      let value = response[month][metric];
+                      if (typeof value === 'object' && value !== null) {
+                          response[month][metric] = parseFloat(value);
+                      }
+                  });
+              }
+          });
+      
+          let availableMonths = Object.keys(response).map(Number).sort((a, b) => a - b);
+          let monthLabels = availableMonths.map(month => monthNames[month] || `Month ${month}`);
+          let pieLabels = availableMonths.length ? Object.keys(response[availableMonths[0]]) : [];
+      
+          let excludeMetricsTop = ["regular_pension_count", "family_pension_count"];
+          let excludeMetrics = ["regular_pension_amount", "family_pension_amount"];
+      
+          let pieData = pieLabels.map(metric =>
+              availableMonths.reduce((total, month) => total + (response[month]?.[metric] || 0), 0)
+          );
+      
+          let filteredPieData = pieLabels.map((label, index) => ({
+              label, value: pieData[index]
+          })).filter(item => item.value > 0)
+            .sort((a, b) => b.value - a.value);
+      
+          let lineLabels = filteredPieData
+              .filter(item => !excludeMetricsTop.includes(item.label))
+              .map(item => item.label);
+      
+          pieLabels = filteredPieData
+              .filter(item => !excludeMetrics.includes(item.label))
+              .map(item => item.label);
+      
+          pieData = filteredPieData.map(item => item.value);
+      
+          let lineDatasetsCount = lineLabels.map(metric => ({
+              label: metric,
+              data: availableMonths.map(month => response[month]?.[metric] || 0),
+              borderColor: getUniqueColor(),
+              fill: false,
+              tension: 0.2
+          }));
+      
+          if (window.pieChart) window.pieChart.destroy();
+          window.pieChart = new Chart(pieCtx, {
+              type: 'line',
+              data: { labels: monthLabels, datasets: lineDatasetsCount },
+              options: {
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                      legend: { position: 'top' },
+                      title: { display: true, text: `Monthly Trends (amount)` }
+                  },
+                  scales: {
+                      x: { title: { display: true, text: "Months" } },
+                      y: { title: { display: true, text: "Count" }, beginAtZero: true }
+                  }
+              }
+          });
+      
+          let lineDatasets = pieLabels.map(metric => ({
+              label: metric,
+              data: availableMonths.map(month => response[month]?.[metric] || 0),
+              borderColor: getUniqueColor(),
+              fill: false,
+              tension: 0.2
+          }));
+      
+          if (window.lineChart) window.lineChart.destroy();
+          window.lineChart = new Chart(lineCtx, {
+              type: 'line',
+              data: { labels: monthLabels, datasets: lineDatasets },
+              options: {
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                      legend: { position: 'top' },
+                      title: { display: true, text: `Monthly Trends (count)` }
+                  },
+                  scales: {
+                      x: { title: { display: true, text: "Months" } },
+                      y: { title: { display: true, text: "Count" }, beginAtZero: true }
+                  }
+              }
+          });
+      
+          console.log(lineDatasets, "lineDatasets");
+      }
+      else if (rule == 6) {
+        Object.keys(response).forEach(month => {
+            if (!isNaN(month)) {
+                Object.keys(response[month]).forEach(metric => {
+                    let value = response[month][metric];
+                    if (typeof value === 'object' && value !== null) {
+                        response[month][metric] = parseFloat(value);
+                    }
+                });
             }
+        });
     
-            function destroyChart(chartInstance) {
-                if (chartInstance && typeof chartInstance.destroy === "function") {
-                    chartInstance.destroy();
+        let availableMonths = Object.keys(response).map(Number).sort((a, b) => a - b);
+        let monthLabels = availableMonths.map(month => monthNames[month] || `Month ${month}`);
+        let pieLabels = availableMonths.length ? Object.keys(response[availableMonths[0]]) : [];
+    
+        let excludeMetricsTop = ["count_of_un_active_pensioner", "count_of_active_pensioner","total_pensioner"];
+        let excludeMetrics = ["active_pensioner_amt", "un_active_pensioner_amt" , "total_pensioner"];
+    
+        let pieData = pieLabels.map(metric =>
+            availableMonths.reduce((total, month) => total + (response[month]?.[metric] || 0), 0)
+        );
+    
+        let filteredPieData = pieLabels.map((label, index) => ({
+            label, value: pieData[index]
+        })).filter(item => item.value > 0)
+          .sort((a, b) => b.value - a.value);
+    
+        let lineLabels = filteredPieData
+            .filter(item => !excludeMetricsTop.includes(item.label))
+            .map(item => item.label);
+    
+        pieLabels = filteredPieData
+            .filter(item => !excludeMetrics.includes(item.label))
+            .map(item => item.label);
+    
+        pieData = filteredPieData.map(item => item.value);
+    
+        const fixedColors = [
+        '#FF5733', '#33FF57', '#3357FF', '#FF33A8', '#33FFF5', 
+        '#F5FF33', '#A833FF', '#FF8C33', '#33FFA8', '#8C33FF'
+        ];
+    
+        let lineDatasetsCount = filteredPieData
+          .filter(item => !excludeMetricsTop.includes(item.label))
+          .map((item, index) => ({
+              label: item.label,
+              data: availableMonths.map(month => response[month]?.[item.label] || 0),
+              borderColor: fixedColors[index % fixedColors.length], // Cycle through colors
+              fill: false,
+              tension: 0.2
+          }));
+    
+        if (window.pieChart) window.pieChart.destroy();
+        window.pieChart = new Chart(pieCtx, {
+            type: 'line',
+            data: { labels: monthLabels, datasets: lineDatasetsCount },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top' },
+                    title: { display: true, text: `Monthly Trends (amount)` }
+                },
+                scales: {
+                    x: { title: { display: true, text: "Months" } },
+                    y: { title: { display: true, text: "Count" }, beginAtZero: true }
                 }
             }
-    
-            destroyChart(window.lineChart);
-            destroyChart(window.pieChart);
-    
-            function resetCanvas(canvas) {
-                const parent = canvas.parentNode;
-                parent.removeChild(canvas);
-                const newCanvas = document.createElement("canvas");
-                newCanvas.id = canvas.id;
-                newCanvas.width = canvas.width;
-                newCanvas.height = canvas.height;
-                parent.appendChild(newCanvas);
-                return newCanvas.getContext("2d");
-            }
-    
-            const lineCtx = resetCanvas(lineCanvas);
-            const pieCtx = resetCanvas(pieCanvas);
-    
-            if (rule === "1") { 
+        });
+        let fixedColorss = ["red", "blue", "green", "purple"]; // Predefined color list
 
-              const monthNames = {
-                  1: "January", 2: "February", 3: "March", 4: "April",
-                  5: "May", 6: "June", 7: "July", 8: "August",
-                  9: "September", 10: "October", 11: "November", 12: "December"
-              };
-          
-              
-              Object.keys(response).forEach(month => {
-                  if (!isNaN(month)) { 
-                      Object.keys(response[month]).forEach(metric => {
-                          let value = response[month][metric];
-                          if (typeof value === 'object' && value !== null) {
-                              response[month][metric] = parseFloat(value);
-                          }
-                      });
-                  }
-              });
-          
-             
-              let availableMonths = Object.keys(response)
-                  .map(Number) // Convert to numbers
-                  .sort((a, b) => a - b); // Ensure months are in order
-          
-             
-          
-              
-              let monthLabels = availableMonths.map(month => monthNames[month] || `Month ${month}`);
-          
-              // ✅ Get metric labels dynamically (from first available month)
-              let pieLabels = availableMonths.length ? Object.keys(response[availableMonths[0]]) : [];
-          
-              // ✅ Aggregate data dynamically for all available months (For Pie Chart)
-              let pieData = pieLabels.map(metric =>
-                  availableMonths.reduce((total, month) => total + (response[month]?.[metric] || 0), 0)
-              );
-          
-              // ✅ Exclude "matched_records" if it dominates
-              let excludeLargeMetric = "matched_records"; 
-              let filteredData = pieLabels.map((label, index) => ({
-                  label, 
-                  value: pieData[index]
-              }))
-              .filter(item => item.label !== excludeLargeMetric && item.value > 0)
-              .sort((a, b) => b.value - a.value); // Sort descending
-          
-              // ✅ Extract sorted labels and data
-              pieLabels = filteredData.map(item => item.label);
-              pieData = filteredData.map(item => item.value);
-          
-             
-          
-              // ✅ Create Pie Chart
-              window.pieChart = new Chart(pieCtx, {
-                  type: 'pie',
-                  data: {
-                      labels: pieLabels,
-                      datasets: [{
-                          data: pieData,
-                          backgroundColor: pieLabels.map(() => getUniqueColor()),
-                          borderColor: '#FFFFFF',
-                          borderWidth: 2
-                      }]
-                  },
-                  options: {
-                      responsive: true,
-                      maintainAspectRatio: false,
-                      plugins: {
-                          legend: { position: 'bottom' },
-                          title: {
-                              display: true,
-                              text: `Total Distribution by Metric (All Months)`
-                          },
-                          tooltip: {
-                              callbacks: {
-                                  label: function (context) {
-                                      const value = context.raw || 0;
-                                      const total = pieData.reduce((acc, val) => acc + val, 0);
-                                      const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
-                                      return `${context.label}: ${value.toLocaleString()} (${percentage}%)`;
-                                  }
-                              }
-                          }
-                      }
-                  }
-              });
-          
-              // ✅ Create Line Chart Data (Trends over time)
-              let lineDatasets = pieLabels.map(metric => ({
-                  label: metric,
-                  data: availableMonths.map(month => response[month]?.[metric] || 0),
-                  borderColor: getUniqueColor(),
-                  fill: false,
-                  tension: 0.2
-              }));
-          
-           
-          
-              // ✅ Create Line Chart
-              window.lineChart = new Chart(lineCtx, {
-                  type: 'line',
-                  data: {
-                      labels: monthLabels, // Use month names instead of numbers
-                      datasets: lineDatasets
-                  },
-                  options: {
-                      responsive: true,
-                      maintainAspectRatio: false,
-                      plugins: {
-                          legend: { position: 'top' },
-                          title: {
-                              display: true,
-                              text: `Monthly Trends by Metric`
-                          }
-                      },
-                      scales: {
-                          x: { title: { display: true, text: "Months" } },
-                          y: { title: { display: true, text: "Count" } }
-                      }
-                  }
-              });
-          }
-            else if (rule == 2) { 
-               
-                window.lineChart = new Chart(lineCtx, {
-                    type: 'line',
-                    data: {
-                        labels: lineLabels,
-                        datasets: lineDatasets
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            title: {
-                                display: true,
-                                text: 'Pensioner Count by Age Group Over Months'
-                            }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                title: {
-                                    display: true,
-                                    text: 'Number of Pensioners'
-                                },
-                                ticks: {
-                                    callback: function(value) {
-                                        return value.toLocaleString();
-                                    }
-                                }
-                            }
-                        }
-                    }
-                });
+        let lineDatasets = pieLabels.map((metric, index) => ({
+            label: metric,
+            data: availableMonths.map(month => response[month]?.[metric] || 0),
+            borderColor: fixedColors[index % fixedColorss.length], // Assign colors properly
+            fill: false,
+            tension: 0.2
+        }));
     
-                
-                let pieLabels = ageCategories;
-                let pieData = ageCategories.map(ageGroup =>
-                    months.reduce((total, month) => total + (response[month]?.[ageGroup]?.count || 0), 0)
-                );
-    
-              
-              
-    
-              
-                window.pieChart = new Chart(pieCtx, {
-                    type: 'pie',
-                    data: {
-                        labels: pieLabels,
-                        datasets: [{
-                            data: pieData,
-                            backgroundColor: pieLabels.map(() => getUniqueColor()),
-                            borderColor: '#FFFFFF',
-                            borderWidth: 2
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: { position: 'bottom' },
-                            title: {
-                                display: true,
-                                text: `Total Pensioner Distribution by Age Group (All Months)`
-                            },
-                            tooltip: {
-                                callbacks: {
-                                    label: function (context) {
-                                        const value = context.raw || 0;
-                                        const total = pieData.reduce((acc, val) => acc + val, 0);
-                                        const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
-                                        return `${value.toLocaleString()} pensioners (${percentage}%)`;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                });
+        if (window.lineChart) window.lineChart.destroy();
+        window.lineChart = new Chart(lineCtx, {
+            type: 'line',
+            data: { labels: monthLabels, datasets: lineDatasets },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top' },
+                    title: { display: true, text: `Monthly Trends (count)` }
+                },
+                scales: {
+                    x: { title: { display: true, text: "Months" } },
+                    y: { title: { display: true, text: "Count" }, beginAtZero: true }
+                }
             }
+        });
     
-        } catch (error) {
-            console.error("Error updating charts:", error);
-        }
+        console.log(lineDatasets, "lineDatasets");
     }
-    
-    
-    
-    function getRandomColor() {
-        return `#${Math.floor(Math.random() * 16777215).toString(16)}`;
     }
-    const usedColors = new Set(); // Keep track of already used colors
+        catch (error) {
+        console.error("Error updating charts:", error);
+    }
+}
+                                                         
+                                                                  
+                                                         
+    
+    
+function getRandomColor() {
+    return `#${Math.floor(Math.random() * 16777215).toString(16)}`;
+}
+const usedColors = new Set(); // Keep track of already used colors
 
-    function getUniqueColor() {
+function getUniqueColor() {
         let color;
         do {
             color = getRandomColor();
@@ -3248,189 +3385,376 @@
 
         usedColors.add(color); // Store the color to prevent reuse
         return color;
-    }
+}
     
-    function updateCompMiddle(response, rule) {
-      if(rule ==1){
-      try {
-          if (!response || typeof response !== 'object') {
-              console.error('Invalid response format');
-              return;
-          }
-  
-        
-        
-  
-          
-          updateCompRule(rule);
-  
-         
-          const monthNames = {
-              1: "January", 2: "February", 3: "March", 4: "April",
-              5: "May", 6: "June", 7: "July", 8: "August",
-              9: "September", 10: "October", 11: "November", 12: "December"
-          };
-  
-          
-          let availableMonths = Object.keys(response)
-              .map(Number)
-              .sort((a, b) => a - b);
-  
-         
-          const elements = {
-              matchedRecords: document.querySelector('.matched-records'),
-              unlinkedRecords: document.querySelector('.unlinked-records'),
-              overpaymentCases: document.querySelector('.overpayment-count'),
-              underpaymentCases: document.querySelector('.underpayment-count'),
-              overpaymentAmount: document.querySelector('.overpayment-amount'),
-              underpaymentAmount: document.querySelector('.underpayment-amount'),
-          };
-  
-         
-          let totalMatched = 0;
-          let totalUnlinked = 0;
-          let totalOverpaymentCases = 0;
-          let totalUnderpaymentCases = 0;
-          let totalOverpaymentAmount = 0;
-          let totalUnderpaymentAmount = 0;
-  
-        
-          availableMonths.forEach(month => {
-              let data = response[month];
-  
-            
-             
-  
-              totalMatched = Number(data.matched_records || 0);  
-              totalUnlinked = Number(data.unlinked_records || 0); 
-              totalOverpaymentCases += Number(data.overpayment_count || 0);
-              totalUnderpaymentCases += Number(data.underpayment_count || 0);
-  
-           
-              totalOverpaymentAmount += parseFloat(data.overpayment_amount || 0);
-              totalUnderpaymentAmount += parseFloat(data.underpayment_amount || 0);
-          });
-  
-          
-          if (elements.matchedRecords) {
-              elements.matchedRecords.textContent = totalMatched.toLocaleString();
-          }
-          if (elements.unlinkedRecords) {
-              elements.unlinkedRecords.textContent = totalUnlinked.toLocaleString();
-          }
-          if (elements.overpaymentCases) {
-              elements.overpaymentCases.textContent = totalOverpaymentCases.toLocaleString();
-          }
-          if (elements.underpaymentCases) {
-              elements.underpaymentCases.textContent = totalUnderpaymentCases.toLocaleString();
-          }
-          if (elements.overpaymentAmount) {
-              elements.overpaymentAmount.textContent = `₹${totalOverpaymentAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
-          }
-          if (elements.underpaymentAmount) {
-              elements.underpaymentAmount.textContent = `₹${totalUnderpaymentAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
-          }
-  
-         
-          const firstSection = document.querySelector(".expandable-section");
-          if (firstSection) {
-              firstSection.classList.add("active");
-              const content = firstSection.querySelector(".section-content");
-              if (content) {
-                  content.style.maxHeight = `${content.scrollHeight}px`;
-                  content.style.opacity = "1";
-                  content.style.padding = "6px 26px";
-                  content.style.marginBottom = "26px";
-              }
-          }
-      } catch (error) {
-          console.error("Error updating middle column for Rule 1:", error);
-      }
-    }
-else if (rule == 2) {
-    try {
-        if (!response || typeof response !== 'object') {
-            console.error('Invalid response format');
-            return;
-        }
-
-       
-
-        // Call function to build the UI structure
-        updateCompRule(rule);
-
-        // Select UI elements
-        const elements = {
-            totalPensioners: document.querySelector('.total-pension'),
-            totalAmount: document.querySelector('.total-amount'),
-            ageWiseContainer: document.querySelector('.unlinked-content')
-        };
-
-        // Initialize totals
-        let totalPensioners = 0;
-        let totalPensionAmount = 0;
-        let ageGroupSums = {};
-
-        // Iterate through all months and sum data
-        for (const monthData of Object.values(response)) {
-            for (const [ageGroup, data] of Object.entries(monthData)) {
-                let count = Number(data.count ?? 0);
-                let pension = parseFloat(data.pension ?? 0);
-
-                if (!ageGroupSums[ageGroup]) {
-                    ageGroupSums[ageGroup] = { count: 0, pension: 0 };
+function updateCompMiddle(response, rule) {
+        if(rule ==1){
+            try {
+                if (!response || typeof response !== 'object') {
+                    console.error('Invalid response format');
+                    return;
                 }
-
-                ageGroupSums[ageGroup].count += count;
-                ageGroupSums[ageGroup].pension += pension;
-
-                totalPensioners += count;
-                totalPensionAmount += pension;
+        
+              
+              
+        
+                
+                updateCompRule(rule);
+        
+              
+                const monthNames = {
+                    1: "January", 2: "February", 3: "March", 4: "April",
+                    5: "May", 6: "June", 7: "July", 8: "August",
+                    9: "September", 10: "October", 11: "November", 12: "December"
+                };
+        
+                
+                let availableMonths = Object.keys(response)
+                    .map(Number)
+                    .sort((a, b) => a - b);
+        
+              
+                const elements = {
+                    matchedRecords: document.querySelector('.matched-records'),
+                    unlinkedRecords: document.querySelector('.unlinked-records'),
+                    overpaymentCases: document.querySelector('.overpayment-count'),
+                    underpaymentCases: document.querySelector('.underpayment-count'),
+                    overpaymentAmount: document.querySelector('.overpayment-amount'),
+                    underpaymentAmount: document.querySelector('.underpayment-amount'),
+                };
+        
+              
+                let totalMatched = 0;
+                let totalUnlinked = 0;
+                let totalOverpaymentCases = 0;
+                let totalUnderpaymentCases = 0;
+                let totalOverpaymentAmount = 0;
+                let totalUnderpaymentAmount = 0;
+        
+              
+                availableMonths.forEach(month => {
+                    let data = response[month];
+        
+                  
+                  
+        
+                    totalMatched = Number(data.matched_records || 0);  
+                    totalUnlinked = Number(data.unlinked_records || 0); 
+                    totalOverpaymentCases += Number(data.overpayment_count || 0);
+                    totalUnderpaymentCases += Number(data.underpayment_count || 0);
+        
+                
+                    totalOverpaymentAmount += parseFloat(data.overpayment_amount || 0);
+                    totalUnderpaymentAmount += parseFloat(data.underpayment_amount || 0);
+                });
+        
+                
+                if (elements.matchedRecords) {
+                    elements.matchedRecords.textContent = totalMatched.toLocaleString();
+                }
+                if (elements.unlinkedRecords) {
+                    elements.unlinkedRecords.textContent = totalUnlinked.toLocaleString();
+                }
+                if (elements.overpaymentCases) {
+                    elements.overpaymentCases.textContent = totalOverpaymentCases.toLocaleString();
+                }
+                if (elements.underpaymentCases) {
+                    elements.underpaymentCases.textContent = totalUnderpaymentCases.toLocaleString();
+                }
+                if (elements.overpaymentAmount) {
+                    elements.overpaymentAmount.textContent = `₹${totalOverpaymentAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+                }
+                if (elements.underpaymentAmount) {
+                    elements.underpaymentAmount.textContent = `₹${totalUnderpaymentAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+                }
+        
+              
+                const firstSection = document.querySelector(".expandable-section");
+                if (firstSection) {
+                    firstSection.classList.add("active");
+                    const content = firstSection.querySelector(".section-content");
+                    if (content) {
+                        content.style.maxHeight = `${content.scrollHeight}px`;
+                        content.style.opacity = "1";
+                        content.style.padding = "6px 26px";
+                        content.style.marginBottom = "26px";
+                    }
+                }
+            } catch (error) {
+                console.error("Error updating middle column for Rule 1:", error);
             }
         }
+        else if (rule == 2) {
+          try {
+              if (!response || typeof response !== 'object') {
+                  console.error('Invalid response format');
+                  return;
+              }
 
-        // Generate HTML for age-wise distribution
-        let ageWiseData = '';
-        for (const [ageGroup, totals] of Object.entries(ageGroupSums)) {
-            ageWiseData += `
-                <div class="content-row">
-                    <span>${ageGroup} Years</span>
-                    <span>${totals.count.toLocaleString()} Pensioners - ₹${totals.pension.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-                </div>
-            `;
-        }
+            
 
-        // Update UI
-        if (elements.totalPensioners) {
-            elements.totalPensioners.textContent = totalPensioners.toLocaleString();
-        }
-        if (elements.totalAmount) {
-            elements.totalAmount.textContent = `₹${totalPensionAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
-        }
-        if (elements.ageWiseContainer) {
-            elements.ageWiseContainer.innerHTML = ageWiseData || '<div class="content-row"><span>No Data Available</span></div>';
-        }
+              // Call function to build the UI structure
+              updateCompRule(rule);
 
-        // Expand first section
-        const firstSection = document.querySelector(".expandable-section");
-        if (firstSection) {
-            firstSection.classList.add("active");
-            const content = firstSection.querySelector(".section-content");
-            if (content) {
-                content.style.maxHeight = `${content.scrollHeight}px`;
-                content.style.opacity = "1";
-                content.style.padding = "6px 26px";
-                content.style.marginBottom = "26px";
+              // Select UI elements
+              const elements = {
+                  totalPensioners: document.querySelector('.total-pension'),
+                  totalAmount: document.querySelector('.total-amount'),
+                  ageWiseContainer: document.querySelector('.unlinked-content')
+              };
+
+              // Initialize totals
+              let totalPensioners = 0;
+              let totalPensionAmount = 0;
+              let ageGroupSums = {};
+
+              // Iterate through all months and sum data
+              for (const monthData of Object.values(response)) {
+                  for (const [ageGroup, data] of Object.entries(monthData)) {
+                      let count = Number(data.count ?? 0);
+                      let pension = parseFloat(data.pension ?? 0);
+
+                      if (!ageGroupSums[ageGroup]) {
+                          ageGroupSums[ageGroup] = { count: 0, pension: 0 };
+                      }
+
+                      ageGroupSums[ageGroup].count += count;
+                      ageGroupSums[ageGroup].pension += pension;
+
+                      totalPensioners += count;
+                      totalPensionAmount += pension;
+                  }
+              }
+
+
+              let ageWiseData = '';
+              for (const [ageGroup, totals] of Object.entries(ageGroupSums)) {
+                  ageWiseData += `
+                      <div class="content-row">
+                          <span>${ageGroup} Years</span>
+                          <span>${totals.count.toLocaleString()} Pensioners - ₹${totals.pension.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                      </div>
+                  `;
+              }
+
+              // Update UI
+              if (elements.totalPensioners) {
+                  elements.totalPensioners.textContent = totalPensioners.toLocaleString();
+              }
+              if (elements.totalAmount) {
+                  elements.totalAmount.textContent = `₹${totalPensionAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+              }
+              if (elements.ageWiseContainer) {
+                  elements.ageWiseContainer.innerHTML = ageWiseData || '<div class="content-row"><span>No Data Available</span></div>';
+              }
+
+              // Expand first section
+              const firstSection = document.querySelector(".expandable-section");
+              if (firstSection) {
+                  firstSection.classList.add("active");
+                  const content = firstSection.querySelector(".section-content");
+                  if (content) {
+                      content.style.maxHeight = `${content.scrollHeight}px`;
+                      content.style.opacity = "1";
+                      content.style.padding = "6px 26px";
+                      content.style.marginBottom = "26px";
+                  }
+              }
+          } catch (error) {
+              console.error("Error updating middle column for Rule 2:", error);
+          }
+        }
+        else if (rule == 3) {
+          try {
+              if (!response || typeof response !== 'object') {
+                  console.error('Invalid response format');
+                  return;
+              }
+      
+              // Call function to build UI structure (ensures table structure exists)
+              updateCompRule(rule);
+      
+              // Select elements AFTER UI structure is built
+              const totalPensionersElement = document.querySelector('.total-pension');
+              const totalAmountElement = document.querySelector('.total-amount');
+              const regularPensionTableBody = document.querySelector("#regularPensionTableBody");
+              const familyPensionTableBody = document.querySelector("#familyPensionTableBody");
+      
+              if (!regularPensionTableBody || !familyPensionTableBody) {
+                  console.error("Table body elements not found!");
+                  return;
+              }
+      
+              // Month mapping
+              const monthNames = {
+                  1: "January", 2: "February", 3: "March", 4: "April", 5: "May", 6: "June",
+                  7: "July", 8: "August", 9: "September", 10: "October", 11: "November", 12: "December"
+              };
+      
+              // Initialize totals
+              let totalRegularPensionAmount = 0;
+              let totalFamilyPensionAmount = 0;
+              let totalRegularPensionCount = 0;
+              let totalFamilyPensionCount = 0;
+      
+              // Clear previous table data
+              regularPensionTableBody.innerHTML = "";
+              familyPensionTableBody.innerHTML = "";
+      
+              // Process response data
+              Object.entries(response).forEach(([monthKey, monthData]) => {
+                  let monthName = monthNames[parseInt(monthKey)] || `Month ${monthKey}`;
+      
+                  const regularPensioners = monthData.regular_pension_count || 0;
+                  const regularPensionAmount = monthData.regular_pension_amount || 0;
+                  const familyPensioners = monthData.family_pension_count || 0;
+                  const familyPensionAmount = monthData.family_pension_amount || 0;
+      
+                  totalRegularPensionAmount += regularPensionAmount;
+                  totalFamilyPensionAmount += familyPensionAmount;
+                  totalRegularPensionCount += regularPensioners;
+                  totalFamilyPensionCount += familyPensioners;
+      
+                  // Append data rows to Regular Pension table
+                  regularPensionTableBody.innerHTML += `
+                      <tr>
+                          <td style="padding-right: 15px;">${monthName}</td>
+                          <td>${regularPensioners.toLocaleString()}</td>
+                          <td>₹${regularPensionAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                      </tr>
+                  `;
+      
+                  // Append data rows to Family Pension table
+                  familyPensionTableBody.innerHTML += `
+                      <tr>
+                          <td style="padding-right: 15px;">${monthName}</td>
+                          <td>${familyPensioners.toLocaleString()}</td>
+                          <td>₹${familyPensionAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                      </tr>
+                  `;
+              });
+
+                              
+              if (totalRegularPensionCount === 0) {
+                  regularPensionTableBody.innerHTML = `<tr><td colspan="3" style="text-align:center;padding-right: 11px;">No Data Available</td></tr>`;
+              }
+              if (totalFamilyPensionCount === 0) {
+                  familyPensionTableBody.innerHTML = `<tr><td colspan="3" style="text-align:center;padding-right: 11px;">No Data Available</td></tr>`;
+              }
+      
+              
+              let totalPensioners = totalRegularPensionCount + totalFamilyPensionCount;
+              let totalPensionAmount = totalRegularPensionAmount + totalFamilyPensionAmount;
+      
+              if (totalPensionersElement) {
+                  totalPensionersElement.textContent = totalPensioners.toLocaleString();
+              }
+              if (totalAmountElement) {
+                  totalAmountElement.textContent = `₹${totalPensionAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+              }
+      
+          } catch (error) {
+              console.error("Error updating pension tables for Rule 3:", error);
+          }
+        }
+        else if (rule ==6){
+          try {
+            if (!response || typeof response !== 'object') {
+                console.error('Invalid response format');
+                return;
             }
+
+            // Call function to build UI structure (ensures table structure exists)
+            updateCompRule(rule);
+
+            // Select elements AFTER UI structure is built
+            const totalPensionersElement = document.querySelector('.total-pension');
+            const totalAmountElement = document.querySelector('.total-amount');
+            const regularPensionTableBody = document.querySelector("#regularPensionTableBody");
+            const familyPensionTableBody = document.querySelector("#familyPensionTableBody");
+
+            if (!regularPensionTableBody || !familyPensionTableBody) {
+                console.error("Table body elements not found!");
+                return;
+            }
+
+            // Month mapping
+            const monthNames = {
+                1: "January", 2: "February", 3: "March", 4: "April", 5: "May", 6: "June",
+                7: "July", 8: "August", 9: "September", 10: "October", 11: "November", 12: "December"
+            };
+
+            // Initialize totals
+            let totalactive_pensioner_amt = 0;
+            let totalun_active_pensioner_amt = 0;
+            let totalcount_of_un_active_pensioner = 0;
+            let totalcount_of_active_pensioner = 0;
+
+            // Clear previous table data
+            regularPensionTableBody.innerHTML = "";
+            familyPensionTableBody.innerHTML = "";
+
+            // Process response data
+            Object.entries(response).forEach(([monthKey, monthData]) => {
+                let monthName = monthNames[parseInt(monthKey)] || `Month ${monthKey}`;
+
+                const count_of_un_active_pensioner = monthData.count_of_un_active_pensioner || 0;
+                const un_active_pensioner_amt = monthData.un_active_pensioner_amt || 0;
+                const count_of_active_pensioner = monthData.count_of_active_pensioner || 0;
+                const active_pensioner_amt = monthData.active_pensioner_amt || 0;
+
+                totalun_active_pensioner_amt += un_active_pensioner_amt;
+                totalactive_pensioner_amt += active_pensioner_amt;
+                totalcount_of_un_active_pensioner += count_of_un_active_pensioner;
+                totalcount_of_active_pensioner += count_of_active_pensioner;
+
+                // Append data rows to Regular Pension table
+                regularPensionTableBody.innerHTML += `
+                    <tr>
+                        <td style="padding-right: 15px;">${monthName}</td>
+                        <td>${count_of_un_active_pensioner.toLocaleString()}</td>
+                        <td>₹${un_active_pensioner_amt.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                    </tr>
+                `;
+
+                // Append data rows to Family Pension table
+                familyPensionTableBody.innerHTML += `
+                    <tr>
+                        <td style="padding-right: 15px;">${monthName}</td>
+                        <td>${count_of_active_pensioner.toLocaleString()}</td>
+                        <td>₹${active_pensioner_amt.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                    </tr>
+                `;
+            });
+
+                            
+            if (totalcount_of_un_active_pensioner === 0) {
+                regularPensionTableBody.innerHTML = `<tr><td colspan="3" style="text-align:center;padding-right: 11px;">No Data Available</td></tr>`;
+            }
+            if (totalcount_of_active_pensioner === 0) {
+                familyPensionTableBody.innerHTML = `<tr><td colspan="3" style="text-align:center;padding-right: 11px;">No Data Available</td></tr>`;
+            }
+
+            
+            let totalPensioners = totalcount_of_un_active_pensioner + totalcount_of_active_pensioner;
+            let totalPensionAmount = totalun_active_pensioner_amt + totalun_active_pensioner_amt;
+
+            if (totalPensionersElement) {
+                totalPensionersElement.textContent = totalPensioners.toLocaleString();
+            }
+            if (totalAmountElement) {
+                totalAmountElement.textContent = `₹${totalPensionAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+            }
+
+          } 
+          catch (error) {
+            console.error("Error updating pension tables for Rule 3:", error);
+          }
         }
-    } catch (error) {
-        console.error("Error updating middle column for Rule 2:", error);
-    }
 }
 
-}
   
-  function updateCompRule(rule) {
+function updateCompRule(rule) {
     if(rule ==1){
         const middleColumn = document.getElementById('middleColumn');
         if (!middleColumn) return;
@@ -3495,53 +3819,214 @@ else if (rule == 2) {
         `;
 
         middleColumn.innerHTML = content;
-        }
+    }
     else if(rule == 2){
-    middleColumn.innerHTML = ''; 
-    middleColumn.innerHTML = `
-                        <div class="expandable-section">
-                            <div class="section-header">
-                                <div class="header-left">
-                                    <span class="dot linked"></span>
-                                    <h2>Total Summary</h2>
-                                </div>
+      middleColumn.innerHTML = ''; 
+      middleColumn.innerHTML = `
+                          <div class="expandable-section">
+                              <div class="section-header">
+                                  <div class="header-left">
+                                      <span class="dot linked"></span>
+                                      <h2>Total Summary</h2>
+                                  </div>
 
-                            </div>
-                            <div class="section-content">
-                                <div class="linked-content">
-                                    <div class="content-row">
-                                        <span>Total Pensioners</span>
-                                        <span class="total-pension">0</span>
-                                    </div>
-                                    <div class="content-row">
-                                        <span>Total Amount</span>
-                                        <span class="total-amount">₹0</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                              </div>
+                              <div class="section-content">
+                                  <div class="linked-content">
+                                      <div class="content-row">
+                                          <span>Total Pensioners</span>
+                                          <span class="total-pension">0</span>
+                                      </div>
+                                      <div class="content-row">
+                                          <span>Total Amount</span>
+                                          <span class="total-amount">₹0</span>
+                                      </div>
+                                  </div>
+                              </div>
+                          </div>
 
-                        <div class="expandable-section active">
-                            <div class="section-header">
-                                <div class="header-left">
-                                    <span class="dot unlinked"></span>
-                                    <h2>Age-wise Distribution</h2>
-                                </div>
+                          <div class="expandable-section active">
+                              <div class="section-header">
+                                  <div class="header-left">
+                                      <span class="dot unlinked"></span>
+                                      <h2>Age-wise Distribution</h2>
+                                  </div>
 
-                            </div>
-                            <div class="section-content" style="max-height: 178px; opacity: 1; padding: 6px 26px; margin-bottom: 26px;">
-                                <div class="unlinked-content">
-                                    <!-- Age-wise data will be dynamically inserted here -->
-                                </div>
-                            </div>
-                        </div>
-                    `;
+                              </div>
+                              <div class="section-content" style="max-height: 178px; opacity: 1; padding: 6px 26px; margin-bottom: 26px;">
+                                  <div class="unlinked-content">
+                                      <!-- Age-wise data will be dynamically inserted here -->
+                                  </div>
+                              </div>
+                          </div>
+                      `;
+    }
+    else if(rule == 3){
+      middleColumn.innerHTML = '';
+
+      middleColumn.innerHTML = `
+          <!-- Regular Pension Section -->
+          <div class="expandable-section" style="background:#fff; border-radius:10px; box-shadow:0px 4px 10px rgba(0, 0, 0, 0.1); padding:15px; margin-bottom:20px;">
+              <div class="section-header" style="display:flex; align-items:center; font-size:18px; font-weight:bold; padding-bottom:10px; border-bottom:2px solid #f0f0f0;">
+                  <div class="header-left" style="display:flex; align-items:center;">
+                      <span class="dot linked" style="height:10px; width:10px; border-radius:50%; background-color:#785EF0; display:inline-block; margin-right:10px;"></span>
+                      <h2 style="margin:0;">Regular Pension</h2>
+                  </div>
+              </div>
+              <div class="section-content" style="max-height: 300px; opacity: 1; padding: 6px 26px; margin-bottom: 26px; overflow-y: auto;">
+                  <table class="styled-table" style="width:100%; border-collapse:collapse; margin-top:10px;">
+                      <thead>
+                          <tr style="background:#f8f8f8; text-align:left;">
+                              <th style="padding-bottom:10px; border-bottom:2px solid #ddd;">Month</th>
+                              <th style="padding-bottom:10px; border-bottom:2px solid #ddd;">Regular Pensioners</th>
+                              <th style="padding-bottom:10px; border-bottom:2px solid #ddd;">Regular Pension Amount (₹)</th>
+                          </tr>
+                      </thead>
+                      <tbody id="regularPensionTableBody">
+                          <tr><td colspan="3" style="text-align:center; font-style:italic; color:#999; padding:15px;">No Data Available</td></tr>
+                      </tbody>
+                  </table>
+              </div>
+          </div>
+
+          <!-- Family Pension Section -->
+          <div class="expandable-section" style="background:#fff; border-radius:10px; box-shadow:0px 4px 10px rgba(0, 0, 0, 0.1); padding:15px; margin-bottom:20px;">
+              <div class="section-header" style="display:flex; align-items:center; font-size:18px; font-weight:bold; padding-bottom:10px; border-bottom:2px solid #f0f0f0;">
+                  <div class="header-left" style="display:flex; align-items:center;">
+                      <span class="dot unlinked" style="height:10px; width:10px; border-radius:50%; background-color:#009EFF; display:inline-block; margin-right:10px;"></span>
+                      <h2 style="margin:0;">Family Pensioners</h2>
+                  </div>
+              </div>
+              <div class="section-content" style="max-height: 300px; opacity: 1; padding: 6px 26px; margin-bottom: 26px; overflow-y: auto;">
+                  <table class="styled-table" style="width:100%; border-collapse:collapse; margin-top:10px;">
+                      <thead>
+                          <tr style="background:#f8f8f8; text-align:left;">
+                              <th style="padding-bottom:10px; border-bottom:2px solid #ddd;">Month</th>
+                              <th style="padding-bottom:10px; border-bottom:2px solid #ddd;">Family Pensioners</th>
+                              <th style="padding-bottom:10px; border-bottom:2px solid #ddd;">Family Pension Amount (₹)</th>
+                          </tr>
+                      </thead>
+                      <tbody id="familyPensionTableBody">
+                          <tr><td colspan="3" style="text-align:center; font-style:italic; color:#999; padding:15px;">No Data Available</td></tr>
+                      </tbody>
+                  </table>
+              </div>
+          </div>
+      `;
+    }
+    else if(rule == 6){
+      middleColumn.innerHTML = '';
+
+      middleColumn.innerHTML = `
+          <!-- Regular Pension Section -->
+          <div class="expandable-section" style="background:#fff; border-radius:10px; box-shadow:0px 4px 10px rgba(0, 0, 0, 0.1); padding:15px; margin-bottom:20px;">
+              <div class="section-header" style="display:flex; align-items:center; font-size:18px; font-weight:bold; padding-bottom:10px; border-bottom:2px solid #f0f0f0;">
+                  <div class="header-left" style="display:flex; align-items:center;">
+                      <span class="dot linked" style="height:10px; width:10px; border-radius:50%; background-color:#785EF0; display:inline-block; margin-right:10px;"></span>
+                      <h2 style="margin:0;">Regular Pension</h2>
+                  </div>
+              </div>
+              <div class="section-content" style="max-height: 300px; opacity: 1; padding: 6px 26px; margin-bottom: 26px; overflow-y: auto;">
+                  <table class="styled-table" style="width:100%; border-collapse:collapse; margin-top:10px;">
+                      <thead>
+                          <tr style="background:#f8f8f8; text-align:left;">
+                              <th style="padding-bottom:10px; border-bottom:2px solid #ddd;">Month</th>
+                              <th style="padding-bottom:10px; border-bottom:2px solid #ddd;">Unactive Pensioners</th>
+                              <th style="padding-bottom:10px; border-bottom:2px solid #ddd;">Unactive Pension Amount (₹)</th>
+                          </tr>
+                      </thead>
+                      <tbody id="regularPensionTableBody">
+                          <tr><td colspan="3" style="text-align:center; font-style:italic; color:#999; padding:15px;">No Data Available</td></tr>
+                      </tbody>
+                  </table>
+              </div>
+          </div>
+
+          <!-- Family Pension Section -->
+          <div class="expandable-section" style="background:#fff; border-radius:10px; box-shadow:0px 4px 10px rgba(0, 0, 0, 0.1); padding:15px; margin-bottom:20px;">
+              <div class="section-header" style="display:flex; align-items:center; font-size:18px; font-weight:bold; padding-bottom:10px; border-bottom:2px solid #f0f0f0;">
+                  <div class="header-left" style="display:flex; align-items:center;">
+                      <span class="dot unlinked" style="height:10px; width:10px; border-radius:50%; background-color:#009EFF; display:inline-block; margin-right:10px;"></span>
+                      <h2 style="margin:0;">Family Pensioners</h2>
+                  </div>
+              </div>
+              <div class="section-content" style="max-height: 300px; opacity: 1; padding: 6px 26px; margin-bottom: 26px; overflow-y: auto;">
+                  <table class="styled-table" style="width:100%; border-collapse:collapse; margin-top:10px;">
+                      <thead>
+                          <tr style="background:#f8f8f8; text-align:left;">
+                              <th style="padding-bottom:10px; border-bottom:2px solid #ddd;">Month</th>
+                              <th style="padding-bottom:10px; border-bottom:2px solid #ddd;">Active Pensioners</th>
+                              <th style="padding-bottom:10px; border-bottom:2px solid #ddd;">Active Pension Amount (₹)</th>
+                          </tr>
+                      </thead>
+                      <tbody id="familyPensionTableBody">
+                          <tr><td colspan="3" style="text-align:center; font-style:italic; color:#999; padding:15px;">No Data Available</td></tr>
+                      </tbody>
+                  </table>
+              </div>
+          </div>
+      `;
+    }
+}
+
+function createBarChart(canvasId, labels, data1, data2, label1 = 'Dataset 1', label2 = 'Dataset 2') {
+  const canvas = document.getElementById(canvasId);
+
+  if (!canvas) {
+      console.error(`Canvas with ID '${canvasId}' not found.`);
+      return;
   }
+
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+      console.error(`Unable to get context for canvas ID '${canvasId}'.`);
+      return;
+  }
+
+  new Chart(ctx, {
+      type: 'bar',
+      data: {
+          labels: labels,
+          datasets: [
+              {
+                  label: label1,
+                  data: data1,
+                  backgroundColor: 'rgba(54, 162, 235, 0.6)'
+              },
+              {
+                  label: label2,
+                  data: data2,
+                  backgroundColor: 'rgba(255, 99, 132, 0.6)'
+              }
+          ]
+      }
+  });
 }
 
 
-
-
+function createLineChart(canvasId, labels, data1, data2, label1 = 'Dataset 1', label2 = 'Dataset 2') {
+  let ctx = document.getElementById(canvasId).getContext('2d');
+  new Chart(ctx, {
+      type: 'line',
+      data: {
+          labels: labels,
+          datasets: [
+              {
+                  label: label1,
+                  data: data1,
+                  borderColor: 'rgba(75, 192, 192, 1)',
+                  fill: false
+              },
+              {
+                  label: label2,
+                  data: data2,
+                  borderColor: 'rgba(255, 159, 64, 1)',
+                  fill: false
+              }
+          ]
+      }
+  });
+}
 
     </script>
 

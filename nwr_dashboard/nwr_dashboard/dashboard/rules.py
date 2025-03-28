@@ -755,7 +755,12 @@ def comp_family_pension_conversion(month):
         response = family_pension_conversion(i)
         month_comparison_dict[i] = response["data"]["rule_data"]
         i+=1
-    return month_comparison_dict
+    final_dict = {}
+    final_dict = {
+        "success": "True",
+        "rule_data": month_comparison_dict
+    }
+    return final_dict
 def comp_revised_pensioners(month):
     i = month[0]
     j = month[1]
@@ -774,4 +779,9 @@ def comp_active_pensioner(month):
         response = active_pensioner(i)
         month_comparison_dict[i] = response["data"]["rule_data"]
         i+=1
-    return month_comparison_dict
+    final_dict = {}
+    final_dict = {
+        "success": "True",
+        "rule_data": month_comparison_dict
+    }
+    return final_dict
