@@ -97,3 +97,27 @@ class arpan_exception(models.Model):
 
     def __str__(self):
         return f"{self.pensioner_name} - {self.scroll_ppo_no}"
+    
+class CommutationalData(models.Model):
+    arpan_ppo_number = models.CharField(max_length=50, null=True, blank=True)
+    ifsc_code = models.CharField(max_length=20, null=True, blank=True)
+    bank_ppo_number = models.CharField(max_length=50, null=True, blank=True)
+    pensioner_name = models.CharField(max_length=100, null=True, blank=True)
+    scroll_acc_no = models.CharField(max_length=50, null=True, blank=True)
+    cessation_date = models.DateField(null=True, blank=True)
+    arpan_basic = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    scroll_basic = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    basic_diff = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    arpan_commutation = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    scroll_commutation = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    commutation_diff = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    gen_pdf = models.CharField(max_length=20, null=True, blank=True)
+    month = models.CharField(max_length=45, null=True, blank=True)
+
+    class Meta:
+        db_table = 'commutational_data'  # This tells Django to use the existing table name
+        verbose_name = "Commutational Data"
+        verbose_name_plural = "Commutational Data"
+
+    def __str__(self):
+        return f"Commutational Data for {self.pensioner_name}"

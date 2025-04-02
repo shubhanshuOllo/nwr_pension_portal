@@ -11,6 +11,8 @@ from django.db.models import Count
 from django.db import connection
 from django.db.models import Sum, F, Case, When, Value
 import pandas as pd
+from datetime import datetime
+
 
 
 
@@ -50,8 +52,8 @@ def get_pension_stats_last_6_months(main_month):
             "count": count,
             "total_pension": total_pension,
         }
-
-        
+         
+          
     response_data = {
         "success": "true",
         "data": {
@@ -197,6 +199,225 @@ def age_metrics(month):
 
     return response_data
 
+
+def age_bracket(month):
+
+    master_data = NWRMasterData.objects.all().values('ppo_number', 'account_number', 'dob')
+    debit_scroll_data = DebitScroll.objects.filter(pension_month=f"2024{int(month):02d}").values("old_ppo", "new_ppo", "account_number","pension")
+    debit_scroll_data_lastmonth = DebitScroll.objects.filter(pension_month=f"2024{int(month)-1:02d}").values("old_ppo", "new_ppo", "account_number","pension")
+    
+    
+    current_month_set = {(entry["old_ppo"], entry["new_ppo"], entry["account_number"]) for entry in debit_scroll_data}
+    last_month_set = {(entry["old_ppo"], entry["new_ppo"], entry["account_number"]) for entry in debit_scroll_data_lastmonth}
+
+    last_month_identifier = set()
+    for old_ppo, new_ppo, acc_num in last_month_set:
+        if old_ppo:
+            last_month_identifier.add(old_ppo)
+        if new_ppo:
+            last_month_identifier.add(new_ppo)
+        if acc_num:
+            last_month_identifier.add(acc_num)
+    
+    new_cases = [
+        entry for entry in debit_scroll_data
+        if entry["old_ppo"] not in last_month_identifier and 
+            entry["new_ppo"] not in last_month_identifier and
+            entry["account_number"] not in last_month_identifier
+    ]
+    zone_change_new_cases = []
+    for i in new_cases:
+        if i.get("old_ppo"):
+            if not i.get("old_ppo").startswith("NWR") and i.get("old_ppo")[4:7] != "733":
+                zone_change_new_cases.append(i)
+        
+    
+
+
+
+    master_ppo_dict = {entry['ppo_number']: entry['dob'] for entry in master_data if entry['ppo_number']}
+    master_acc_dict = {entry['account_number']: entry['dob'] for entry in master_data if entry['account_number']}
+ 
+    
+    turning_eighty_zone_change = 0
+    turning_eighty_zone_change_overlay = 0
+    eighty_plus_zone_change = 0
+    eighty_plus_zone_change_overlay = 0
+    reference_date = datetime.strptime(f"2024-{int(month):02d}-01", "%Y-%m-%d").date()
+    for i in zone_change_new_cases:
+        dob = (
+            master_ppo_dict.get(i["old_ppo"]) or
+            master_ppo_dict.get(i["new_ppo"]) or 
+            master_ppo_dict.get(i["account_number"]) or 
+            None
+        )
+        age = None
+        if dob:
+            try:
+                dob_date = dob if isinstance(dob, datetime) else datetime.strptime(str(dob), "%Y-%m-%d").date()
+                age_last_month = reference_date.year - dob_date.year - 1  
+                age_this_month = reference_date.year - dob_date.year - ((reference_date.month, reference_date.day) < (dob_date.month, dob_date.day))  
+                
+                if age_last_month == 79 and age_this_month == 80:
+                    turning_eighty_zone_change += 1
+                    turning_eighty_zone_change_overlay += i["pension"]
+                elif age_this_month > 80:
+                    eighty_plus_zone_change += 1
+                    eighty_plus_zone_change_overlay += i["pension"]
+
+            except ValueError:
+                print(f"Value error: Invalid DOB format -> {dob}")
+
+    mapped_data = []
+    turning_80_count = 0  
+    turning_80_overlay = 0 
+
+    for debit in debit_scroll_data:
+        dob = (
+            master_ppo_dict.get(debit['old_ppo']) or
+            master_ppo_dict.get(debit['new_ppo']) or
+            master_acc_dict.get(debit['account_number']) or
+            None
+        )
+
+        age = None
+        if dob:
+            try:
+                dob_date = dob if isinstance(dob, datetime) else datetime.strptime(str(dob), "%Y-%m-%d").date()
+                age_last_month = reference_date.year - dob_date.year - 1  
+                age_this_month = reference_date.year - dob_date.year - ((reference_date.month, reference_date.day) < (dob_date.month, dob_date.day))  
+                
+                if age_last_month == 79 and age_this_month == 80:
+                    turning_80_count += 1
+                    turning_80_overlay += debit["pension"]
+            except ValueError:
+                print(f"Value error: Invalid DOB format -> {dob}")
+        
+
+        mapped_data.append({
+            "old_ppo": debit['old_ppo'],
+            "new_ppo": debit['new_ppo'],
+            "pension": debit['pension'],
+            "account_number": debit['account_number'],
+            "dob": dob
+        })
+    final_dict = {"turning_80_count":turning_80_count,
+                  "turning_80_overlay":turning_80_overlay,
+                  "eighty_plus_zone_change":eighty_plus_zone_change,
+                  "eighty_plus_zone_change_overlay":eighty_plus_zone_change_overlay,
+                  "turning_eighty_zone_change":turning_eighty_zone_change,
+                  "turning_eighty_zone_change_overlay":turning_eighty_zone_change_overlay,
+                  }
+    
+    return final_dict  
+
+def commutation_data(month):
+    commutation_data = CommutationalData.objects.filter(month=f"2024{int(month):02d}")
+    
+    total_commutation_diff = 0
+    commutation_count = 0
+    for i in commutation_data:
+        commutation_count+=1
+        total_commutation_diff += i.commutation_diff
+    final_dict = {
+        "commutation_cases_count": commutation_count,
+        "total_commutation_diff":total_commutation_diff
+    }
+    response_dict = {
+        "success": True,
+        "data": {
+            "rule_no": "10",
+            "rule_data": final_dict
+        }
+    }
+    return response_dict                                       
+def comp_age_bracket():
+    sept_data = age_bracket("9")
+    aug_data = age_bracket("8")
+    july_data = age_bracket("7")
+    june_data = age_bracket("6")
+    may_data = age_bracket("5")
+    april_data = age_bracket("4")
+    rule_data = {
+        "april_data": april_data,
+        "may_data": may_data,
+         "june_data": june_data,
+         "july_data": july_data,
+        "aug_data": aug_data,
+         "sept_data":sept_data,
+    }
+    rule_number = 8
+    response_data = {
+            "success": "true",
+            "data": {
+                "rule_no":rule_number,
+                "rule_data":rule_data
+            }
+    }
+
+    return response_data
+
+def stopped_pensioner(month):
+    debit_scroll_data = DebitScroll.objects.filter(pension_month=f"2024{int(month):02d}").values("old_ppo", "new_ppo", "account_number","pension")
+    debit_scroll_data_lastmonth = DebitScroll.objects.filter(pension_month=f"2024{int(month)-1:02d}").values("old_ppo", "new_ppo", "account_number","pension")
+    
+    
+    current_month_set = {(entry["old_ppo"], entry["new_ppo"], entry["account_number"]) for entry in debit_scroll_data}
+    last_month_set = {(entry["old_ppo"], entry["new_ppo"], entry["account_number"]) for entry in debit_scroll_data_lastmonth}
+
+    current_month_identifier = set()
+    for old_ppo, new_ppo, acc_num in current_month_set:
+        if old_ppo:
+            current_month_identifier.add(old_ppo)
+        if new_ppo:
+            current_month_identifier.add(new_ppo)
+        if acc_num:
+            current_month_identifier.add(acc_num)
+
+    stopped_cases = [
+    entry for entry in debit_scroll_data_lastmonth
+        if entry["old_ppo"] not in current_month_identifier and 
+            entry["new_ppo"] not in current_month_identifier and
+            entry["account_number"] not in current_month_identifier
+        ]
+    
+    stopped_cases_count = len(stopped_cases)
+    stopped_cases_pension_overlay = 0
+    for i in stopped_cases:
+        stopped_cases_pension_overlay+=i["pension"]
+    
+    final_dict = {"stopped_cases_count":stopped_cases_count,
+                  "stopped_cases_pension_overlay":stopped_cases_pension_overlay}
+    
+    return final_dict
+
+
+def comp_stopped_pensioner():
+    sept_data = stopped_pensioner("9")
+    aug_data = stopped_pensioner("8")
+    july_data = stopped_pensioner("7")
+    june_data = stopped_pensioner("6")
+    may_data = stopped_pensioner("5")
+    april_data = stopped_pensioner("4")
+    rule_data = {
+        "april_data": april_data,
+        "may_data": may_data,
+         "june_data": june_data,
+         "july_data": july_data,
+        "aug_data": aug_data,
+         "sept_data":sept_data,
+    }
+    rule_no = 9
+    
+    response_data = {
+            "success": "true",
+            "data": {
+                "rule_no": rule_no,
+                "rule_data":rule_data
+            }
+    }
+
+    return response_data
 
 def overall_payment(month):
     

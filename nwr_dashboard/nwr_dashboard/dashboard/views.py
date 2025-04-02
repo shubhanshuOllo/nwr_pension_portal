@@ -459,6 +459,7 @@ def get_rule(request):
     # Extract month and rule from request
     # month = request.GET.get('month')
     month = request.GET.getlist("month")  
+    print(request.GET.keys(),"request")
     rule = request.GET.get("rule", "").strip()
     print(month,"month")
     print(rule,"rule")
@@ -524,6 +525,13 @@ def get_rule(request):
 
         if rule == "7":
             data=get_efp_count()
+
+        if rule == "8":
+            data = comp_age_bracket()
+        if rule == "9":
+            data = comp_stopped_pensioner()
+        if rule == "10":
+            data = commutation_data(month)
     data["rule_comp"] = rule_comp
     data["rule"] = rule
     print(data,"data")
@@ -867,8 +875,6 @@ where inactive = stop pensioners
 
 @login_required
 def generate_excl(request):
-
-
     rule_json = request.GET.get('rule_data')
     month = request.GET.get('month')
     year = 2024 

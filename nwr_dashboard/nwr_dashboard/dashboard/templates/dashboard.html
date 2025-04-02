@@ -265,6 +265,24 @@
                     <span>Enhanced Family Pension</span>
                   </div>
                 </div>
+                <div class="nwr-select-option notification-item" data-value="8">
+                  <i class="fas fa-check check-icon"></i>
+                  <div class="notification-header">
+                    <span>Age Bracket</span>
+                  </div>
+                </div>
+                <div class="nwr-select-option notification-item" data-value="9">
+                  <i class="fas fa-check check-icon"></i>
+                  <div class="notification-header">
+                    <span>Stopped Pensioner</span>
+                  </div>
+                </div>
+                <div class="nwr-select-option notification-item" data-value="10">
+                  <i class="fas fa-check check-icon"></i>
+                  <div class="notification-header">
+                    <span>Commutation Mismatch</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -370,11 +388,11 @@
               <i class="fas fa-paper-plane"></i>
             </button>
           </div>
+            <img src="/static/images/degreemaster.png" alt="degreemaster Logo" class="logo"
+              style="width: 146px; display: flex ; margin: 12px; margin-left: auto;">
+            </div>
+          </div>
            
-      </div>
-        <img src="/static/images/degreemaster.png" alt="degreemaster Logo" class="logo"
-          style="width: 146px; display: flex ; margin: 12px; margin-left: auto;">
-        </div>
       </div>
     </div>
 
@@ -470,24 +488,41 @@
                 return;
               }
 
-                    const data = response.data;
-                    const ruleData = data.rule_data;
-                    const isRule1Format = ruleData.hasOwnProperty('matched_records');
-                    const isRule3Format = ruleData.hasOwnProperty('regular_pension_count');
-                    const isRule4Format = ruleData.hasOwnProperty('new');
-                    const isRule5Format = ruleData.hasOwnProperty('stats');
-                    const isRule6Format = ruleData.hasOwnProperty('count_of_active_pensioner');
-                    const isRule7Format = ruleData.hasOwnProperty('efp_count');
+              const data = response.data;
+              const ruleData = data.rule_data;
+              const rule_num = data.rule_no;
 
+              const isRule1Format = ruleData.hasOwnProperty('matched_records');
+              const isRule3Format = ruleData.hasOwnProperty('regular_pension_count');
+              const isRule4Format = ruleData.hasOwnProperty('new');
+              const isRule5Format = ruleData.hasOwnProperty('stats');
+              const isRule6Format = ruleData.hasOwnProperty('count_of_active_pensioner');
+              const isRule7Format = ruleData.hasOwnProperty('efp_count');
+              let isRule8Format = false
+              let isRule9Format = false
+              let isRule10Format = false
+              if (rule_num == "9"){
+                 isRule9Format = true
+              }
+              else if (rule_num == "8"){
+                isRule8Format = true
+              }
+              else if( rule_num == "10"){
+                isRule10Format = true
+              }
+              console.log(rule_num,"rule_num")
+              console.log(isRule8Format,"isRule8Format")
               const lineCtx = document.getElementById("lineChart").getContext("2d");
               const pieCtx = document.getElementById("pieChart").getContext("2d");
 
               // Destroy existing charts
               if (lineChart) {
+                console.log("chrt dest")
                 lineChart.destroy();
                 lineChart = null;
               }
               if (pieChart) {
+                console.log("chrt dest 4")
                 pieChart.destroy();
                 pieChart = null;
               }
@@ -780,209 +815,209 @@
                         });
 
                 // Rule 3: Create pie chart for pension type distribution
-                pieChart = new Chart(pieCtx, {
-                  type: "pie",
-                  data: {
-                    labels: ["Regular Pension", "Family Pension"],
-                    datasets: [
-                      {
-                        data: [
-                          ruleData.regular_pension_count,
-                          ruleData.family_pension_count,
-                        ],
-                        backgroundColor: ["#6B5EFF", "#36A2EB"],
-                        borderColor: "#FFFFFF",
-                        borderWidth: 2,
-                      },
-                    ],
-                  },
-                  options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                      legend: {
-                        position: "bottom",
-                      },
-                      title: {
-                        display: true,
-                        text: "Distribution by Pension Type",
-                      },
-                      tooltip: {
-                        callbacks: {
-                          label: function (context) {
-                            const value = context.raw;
-                            const total = context.dataset.data.reduce(
-                              (a, b) => a + b,
-                              0
-                            );
-                            const percentage = ((value / total) * 100).toFixed(1);
-                            const amount =
-                              context.label === "Regular Pension"
-                                ? ruleData.regular_pension_amount
-                                : ruleData.family_pension_amount;
-                            return [
-                              `${value.toLocaleString()} pensioners (${percentage}%)`,
-                              `Total Amount: ₹${amount.toLocaleString()}`,
-                            ];
-                          },
-                        },
-                      },
-                    },
-                  },
-                });
-              } else if (isRule1Format) {
-                // Rule 1: Create line chart for payment trends
-                lineChart = new Chart(lineCtx, {
-                  type: "line",
-                  data: {
-                    labels: ["Matched", "Unmatched", "Overpayment", "Underpayment"],
-                    datasets: [
-                      {
-                        label: "Number of Cases",
-                        data: [
-                          ruleData.matched_records,
-                          ruleData.unlinked_records,
-                          ruleData.overpayment_count,
-                          ruleData.underpayment_count,
-                        ],
-                        borderColor: "#6B5EFF",
-                        tension: 0.4,
-                        fill: false,
-                      },
-                      {
-                        label: "Amount (₹)",
-                        data: [
-                          ruleData.linked_amount, // No amount for matched records
-                          ruleData.unlinked_amount, // No amount for unlinked records
-                          ruleData.overpayment_amount,
-                          ruleData.underpayment_amount,
-                        ],
-                        borderColor: "#36A2EB",
-                        tension: 0.4,
-                        fill: false,
-                        yAxisID: "y1",
-                      },
-                    ],
-                  },
-                  options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                      title: {
-                        display: true,
-                        text: "Payment Analysis Overview",
-                      },
-                      tooltip: {
-                        callbacks: {
-                          label: function (context) {
-                            const label = context.dataset.label || "";
-                            const value = context.raw;
-                            if (label.includes("Amount")) {
-                              return value > 0
-                                ? `${label}: ₹${value.toLocaleString()}`
-                                : "";
-                            }
-                            return `${label}: ${value.toLocaleString()}`;
-                          },
-                        },
-                      },
-                    },
-                    scales: {
-                      y: {
-                        beginAtZero: true,
-                        title: {
-                          display: true,
-                          text: "Number of Cases",
-                        },
-                        ticks: {
-                          callback: function (value) {
-                            return value.toLocaleString();
-                          },
-                        },
-                      },
-                      y1: {
-                        beginAtZero: true,
-                        position: "right",
-                        title: {
-                          display: true,
-                          text: "Amount (₹)",
-                        },
-                        grid: {
-                          drawOnChartArea: false,
-                        },
-                        ticks: {
-                          callback: function (value) {
-                            return "₹" + value.toLocaleString();
-                          },
-                        },
-                      },
-                    },
-                  },
-                });
-
-                pieChart = new Chart(pieCtx, {
-                  type: "doughnut",
-                  data: {
-                      labels: [
-                          "Unlinked Records",
-                          "Linked - No Issue",
-                          "Overpayment Cases",
-                          "Underpayment Cases"
-                      ],
-                      datasets: [
-                          {
+                      pieChart = new Chart(pieCtx, {
+                        type: "pie",
+                        data: {
+                          labels: ["Regular Pension", "Family Pension"],
+                          datasets: [
+                            {
                               data: [
-                                  ruleData.unlinked_records, // Keep same as outer layer to align visually
-                                  ruleData.matched_records - ruleData.overpayment_count - ruleData.underpayment_count, // Linked - No Issue
-                                  ruleData.overpayment_count,
-                                  ruleData.underpayment_count,
+                                ruleData.regular_pension_count,
+                                ruleData.family_pension_count,
                               ],
-                              backgroundColor: [
-                                  "#E0E0E0",  // Light Grey for Unlinked (Neutral)
-                                  "#4B49AC",  // Deep Indigo for Linked - No Issue
-                                  "#F76C6C",  // Soft Red for Overpayment Cases
-                                  "#2D9CDB"   // Bright Blue for Underpayment Cases
-                              ],
+                              backgroundColor: ["#6B5EFF", "#36A2EB"],
                               borderColor: "#FFFFFF",
                               borderWidth: 2,
-                          },
-                      ],
-                  },
-                  options: {
-                      responsive: true,
-                      maintainAspectRatio: false,
-                      cutout: "50%", // Adjust inner hole size for clarity
-                      plugins: {
-                          
-                          legend: {
-                              display: true, // Ensure legend is displayed
-                              position: 'bottom', // Position legend at the bottom
-                              labels: {
-                                usePointStyle: true, // Use point style for legend
-                                color: '#333', // Set legend text color
-                              },
-                          },
-                          tooltip: {
+                            },
+                          ],
+                        },
+                        options: {
+                          responsive: true,
+                          maintainAspectRatio: false,
+                          plugins: {
+                            legend: {
+                              position: "bottom",
+                            },
+                            title: {
+                              display: true,
+                              text: "Distribution by Pension Type",
+                            },
+                            tooltip: {
                               callbacks: {
-                                  label: function (context) {
-                                      let datasetIndex = context.datasetIndex;
-                                      let dataIndex = context.dataIndex;
-                                      let value = context.raw;
-                                      let total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                      let percentage = ((value / total) * 100).toFixed(1);
-
-                                      // Correct label for "Linked - No Issue"
-                                      if (datasetIndex === 1 && dataIndex === 1) {
-                                          return `Linked - No Issue: ${value.toLocaleString()} cases (${percentage}%)`;
-                                      }
-
-                                      return `${context.chart.data.labels[dataIndex]}: ${value.toLocaleString()} cases (${percentage}%)`;
+                                label: function (context) {
+                                  const value = context.raw;
+                                  const total = context.dataset.data.reduce(
+                                    (a, b) => a + b,
+                                    0
+                                  );
+                                  const percentage = ((value / total) * 100).toFixed(1);
+                                  const amount =
+                                    context.label === "Regular Pension"
+                                      ? ruleData.regular_pension_amount
+                                      : ruleData.family_pension_amount;
+                                  return [
+                                    `${value.toLocaleString()} pensioners (${percentage}%)`,
+                                    `Total Amount: ₹${amount.toLocaleString()}`,
+                                  ];
+                                },
+                              },
+                            },
+                          },
+                        },
+                      });
+              } else if (isRule1Format) {
+                      // Rule 1: Create line chart for payment trends
+                      lineChart = new Chart(lineCtx, {
+                        type: "line",
+                        data: {
+                          labels: ["Matched", "Unmatched", "Overpayment", "Underpayment"],
+                          datasets: [
+                            {
+                              label: "Number of Cases",
+                              data: [
+                                ruleData.matched_records,
+                                ruleData.unlinked_records,
+                                ruleData.overpayment_count,
+                                ruleData.underpayment_count,
+                              ],
+                              borderColor: "#6B5EFF",
+                              tension: 0.4,
+                              fill: false,
+                            },
+                            {
+                              label: "Amount (₹)",
+                              data: [
+                                ruleData.linked_amount, // No amount for matched records
+                                ruleData.unlinked_amount, // No amount for unlinked records
+                                ruleData.overpayment_amount,
+                                ruleData.underpayment_amount,
+                              ],
+                              borderColor: "#36A2EB",
+                              tension: 0.4,
+                              fill: false,
+                              yAxisID: "y1",
+                            },
+                          ],
+                        },
+                        options: {
+                          responsive: true,
+                          maintainAspectRatio: false,
+                          plugins: {
+                            title: {
+                              display: true,
+                              text: "Payment Analysis Overview",
+                            },
+                            tooltip: {
+                              callbacks: {
+                                label: function (context) {
+                                  const label = context.dataset.label || "";
+                                  const value = context.raw;
+                                  if (label.includes("Amount")) {
+                                    return value > 0
+                                      ? `${label}: ₹${value.toLocaleString()}`
+                                      : "";
                                   }
-                              }
-                          }
-                      }
-                  }
-              });
+                                  return `${label}: ${value.toLocaleString()}`;
+                                },
+                              },
+                            },
+                          },
+                          scales: {
+                            y: {
+                              beginAtZero: true,
+                              title: {
+                                display: true,
+                                text: "Number of Cases",
+                              },
+                              ticks: {
+                                callback: function (value) {
+                                  return value.toLocaleString();
+                                },
+                              },
+                            },
+                            y1: {
+                              beginAtZero: true,
+                              position: "right",
+                              title: {
+                                display: true,
+                                text: "Amount (₹)",
+                              },
+                              grid: {
+                                drawOnChartArea: false,
+                              },
+                              ticks: {
+                                callback: function (value) {
+                                  return "₹" + value.toLocaleString();
+                                },
+                              },
+                            },
+                          },
+                        },
+                      });
+
+                      pieChart = new Chart(pieCtx, {
+                        type: "doughnut",
+                        data: {
+                            labels: [
+                                "Unlinked Records",
+                                "Linked - No Issue",
+                                "Overpayment Cases",
+                                "Underpayment Cases"
+                            ],
+                            datasets: [
+                                {
+                                    data: [
+                                        ruleData.unlinked_records, // Keep same as outer layer to align visually
+                                        ruleData.matched_records - ruleData.overpayment_count - ruleData.underpayment_count, // Linked - No Issue
+                                        ruleData.overpayment_count,
+                                        ruleData.underpayment_count,
+                                    ],
+                                    backgroundColor: [
+                                        "#E0E0E0",  // Light Grey for Unlinked (Neutral)
+                                        "#4B49AC",  // Deep Indigo for Linked - No Issue
+                                        "#F76C6C",  // Soft Red for Overpayment Cases
+                                        "#2D9CDB"   // Bright Blue for Underpayment Cases
+                                    ],
+                                    borderColor: "#FFFFFF",
+                                    borderWidth: 2,
+                                },
+                            ],
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            cutout: "50%", // Adjust inner hole size for clarity
+                            plugins: {
+                                
+                                legend: {
+                                    display: true, // Ensure legend is displayed
+                                    position: 'bottom', // Position legend at the bottom
+                                    labels: {
+                                      usePointStyle: true, // Use point style for legend
+                                      color: '#333', // Set legend text color
+                                    },
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function (context) {
+                                            let datasetIndex = context.datasetIndex;
+                                            let dataIndex = context.dataIndex;
+                                            let value = context.raw;
+                                            let total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                            let percentage = ((value / total) * 100).toFixed(1);
+
+                                            // Correct label for "Linked - No Issue"
+                                            if (datasetIndex === 1 && dataIndex === 1) {
+                                                return `Linked - No Issue: ${value.toLocaleString()} cases (${percentage}%)`;
+                                            }
+
+                                            return `${context.chart.data.labels[dataIndex]}: ${value.toLocaleString()} cases (${percentage}%)`;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
 
 
                   } else if (isRule6Format) {
@@ -1165,92 +1200,300 @@
                           }
                       });
                   }
-                  else {
-          // Rule 2: Create line chart for age-wise distribution
-                const ageRanges = Object.keys(ruleData).sort((a, b) => {
-                  const aStart = parseInt(a.split("-")[0]);
-                  const bStart = parseInt(b.split("-")[0]);
-                  return aStart - bStart;
-                });
-                const pensionAmounts = ageRanges.map(
-                  (range) => ruleData[range].pension
-                );
-                const pensionerCounts = ageRanges.map(
-                  (range) => ruleData[range].count
-                );
+                  else if(isRule8Format){
+                    document.getElementById("chart_container").style.display = "none";
+                    const labels = ['April', 'May', 'June', 'July', 'August', 'September'];
+                    lineChart = new Chart(lineCtx, {
+                      type: 'line',
+                      data: {
+                          labels: labels,
+                          datasets: [
+                              {
+                                  label: 'Turning 80 Count',
+                                  data: labels.map((month, i) => ruleData[Object.keys(ruleData)[i]].turning_80_count),
+                                  borderColor: '#6B5EFF',
+                                  tension: 0.4,
+                                  fill: false
+                              },
+                              {
+                                  label: 'Turning 80 outlay',
+                                  data: labels.map((month, i) => ruleData[Object.keys(ruleData)[i]].turning_80_overlay),
+                                  borderColor: '#FF5733',
+                                  tension: 0.4,
+                                  fill: false
+                              },
+                              {
+                                  label: '80+ Zone Change',
+                                  data: labels.map((month, i) => ruleData[Object.keys(ruleData)[i]].eighty_plus_zone_change),
+                                  borderColor: '#33FF57',
+                                  tension: 0.4,
+                                  fill: false
+                              },
+                              {
+                                  label: '80+ Zone Change Outlay',
+                                  data: labels.map((month, i) => ruleData[Object.keys(ruleData)[i]].eighty_plus_zone_change_overlay),
+                                  borderColor: '#FFC300',
+                                  tension: 0.4,
+                                  fill: false
+                              },
+                              {
+                                  label: 'Turning 80 Zone Change',
+                                  data: labels.map((month, i) => ruleData[Object.keys(ruleData)[i]].turning_eighty_zone_change),
+                                  borderColor: '#C70039',
+                                  tension: 0.4,
+                                  fill: false
+                              },
+                              {
+                                  label: 'Turning 80 Zone Change Outlay',
+                                  data: labels.map((month, i) => ruleData[Object.keys(ruleData)[i]].turning_eighty_zone_change_overlay),
+                                  borderColor: '#900C3F',
+                                  tension: 0.4,
+                                  fill: false
+                              }
+                          ]
+                      },
+                      options: {
+                          responsive: true,
+                          maintainAspectRatio: false,
+                          plugins: {
+                              title: {
+                                  display: true,
+                                  text: 'Stopped Pensioner Metrics'
+                              },
+                              tooltip: {
+                                  callbacks: {
+                                      label: function(context) {
+                                          const label = context.dataset.label || '';
+                                          const value = context.raw || 0;
+                                          return `${label}: ${value.toLocaleString()}`;
+                                      }
+                                  }
+                              }
+                          },
+                          scales: {
+                              y: {
+                                  beginAtZero: true,
+                                  title: {
+                                      display: true,
+                                      text: 'Values'
+                                  },
+                                  ticks: {
+                                      callback: function(value) {
+                                          return value.toLocaleString();
+                                      }
+                                  }
+                              }
+                          }
+                      }
+                    });
+                  }
+                  else if(isRule9Format){
+                    document.getElementById("chart_container").style.display = "none";
+                    const labels = ['April', 'May', 'June', 'July', 'August', 'September'];
+                    lineChart = new Chart(lineCtx, {
+                      type: 'line',
+                      data: {
+                          labels: labels,
+                          datasets: [
+                              {
+                                  label: 'Stopped Cases Count',
+                                  data: labels.map((month, i) => ruleData[Object.keys(ruleData)[i]].stopped_cases_count),
+                                  borderColor: '#6B5EFF',
+                                  tension: 0.4,
+                                  fill: false
+                              },
+                              {
+                                  label: 'Stopped Cases Pension Outlay',
+                                  data: labels.map((month, i) => ruleData[Object.keys(ruleData)[i]].stopped_cases_pension_overlay),
+                                  borderColor: '#FF5733',
+                                  tension: 0.4,
+                                  fill: false
+                              }
+                          ]
+                      },
+                      options: {
+                          responsive: true,
+                          maintainAspectRatio: false,
+                          plugins: {
+                              title: {
+                                  display: true,
+                                  text: 'Stopped Pensioner Metrics'
+                              },
+                              tooltip: {
+                                  callbacks: {
+                                      label: function(context) {
+                                          const label = context.dataset.label || '';
+                                          const value = context.raw || 0;
+                                          return `${label}: ${value.toLocaleString()}`;
+                                      }
+                                  }
+                              }
+                          },
+                          scales: {
+                              y: {
+                                  beginAtZero: true,
+                                  title: {
+                                      display: true,
+                                      text: 'Values'
+                                  },
+                                  ticks: {
+                                      callback: function(value) {
+                                          return value.toLocaleString();
+                                      }
+                                  }
+                              }
+                          }
+                      }
+                    });
+                    
+                  }
+                  else if (isRule10Format){
+                    document.getElementById("chart_container").style.display = "none";
 
-                        lineChart = new Chart(lineCtx, {
-                            type: 'line',
-                            data: {
-                                labels: ageRanges.map(range => `${range} years`),
-                                datasets: [{
-                                    label: 'Pension Amount (₹)',
-                                    data: pensionAmounts,
-                                    borderColor: '#6B5EFF',
-                                    tension: 0.4,
-                                    fill: false
-                                }, {
-                                    label: 'Number of Pensioners',
-                                    data: pensionerCounts,
-                                    borderColor: '#36A2EB',
-                                    tension: 0.4,
-                                    fill: false,
-                                    yAxisID: 'y1'
-                                }]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                plugins: {
-                                    title: {
-                                        display: true,
-                                        text: 'Age-wise Pension Distribution'
-                                    },
-                                    tooltip: {
-                                        callbacks: {
-                                            label: function(context) {
-                                                const label = context.dataset.label || '';
-                                                const value = context.raw;
-                                                if (label.includes('Amount')) {
-                                                    return `${label}: ₹${value.toLocaleString()}`;
-                                                }
-                                                return `${label}: ${value.toLocaleString()}`;
-                                            }
-                                        }
-                                    }
+                    const labels = ['Commutation Cases Count', 'Total Commutation Difference'];
+                    const ruleData = {
+                      'commutation_cases_count': 395,
+                      'total_commutation_diff': -941245.00
+                    };
+                    
+                    lineChart = new Chart(lineCtx, {
+                      type: 'line',
+                      data: {
+                          labels: labels,
+                          datasets: [
+                              {
+                                  label: 'Commutation Metrics',
+                                  data: [ruleData.commutation_cases_count, ruleData.total_commutation_diff],
+                                  borderColor: '#6B5EFF',
+                                  tension: 0.4,
+                                  fill: false
+                              }
+                          ]
+                      },
+                      options: {
+                          responsive: true,
+                          maintainAspectRatio: false,
+                          plugins: {
+                              title: {
+                                  display: true,
+                                  text: 'Commutation Analysis'
+                              },
+                              tooltip: {
+                                  callbacks: {
+                                      label: function(context) {
+                                          const label = context.dataset.label || '';
+                                          const value = context.raw || 0;
+                                          return `${label}: ${value.toLocaleString()}`;
+                                      }
+                                  }
+                              }
+                          },
+                          scales: {
+                              y: {
+                                  beginAtZero: true,
+                                  title: {
+                                      display: true,
+                                      text: 'Values'
+                                  },
+                                  ticks: {
+                                      callback: function(value) {
+                                          return value.toLocaleString();
+                                      }
+                                  }
+                              }
+                          }
+                      }
+                    });
+                    
+
+                  }
+                  
+                  else {
+                   // Rule 2: Create line chart for age-wise distribution
+                    const ageRanges = Object.keys(ruleData).sort((a, b) => {
+                      const aStart = parseInt(a.split("-")[0]);
+                      const bStart = parseInt(b.split("-")[0]);
+                      return aStart - bStart;
+                    });
+                    const pensionAmounts = ageRanges.map(
+                      (range) => ruleData[range].pension
+                    );
+                    const pensionerCounts = ageRanges.map(
+                      (range) => ruleData[range].count
+                    );
+
+                            lineChart = new Chart(lineCtx, {
+                                type: 'line',
+                                data: {
+                                    labels: ageRanges.map(range => `${range} years`),
+                                    datasets: [{
+                                        label: 'Pension Amount (₹)',
+                                        data: pensionAmounts,
+                                        borderColor: '#6B5EFF',
+                                        tension: 0.4,
+                                        fill: false
+                                    }, {
+                                        label: 'Number of Pensioners',
+                                        data: pensionerCounts,
+                                        borderColor: '#36A2EB',
+                                        tension: 0.4,
+                                        fill: false,
+                                        yAxisID: 'y1'
+                                    }]
                                 },
-                                scales: {
-                                    y: {
-                                        beginAtZero: true,
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    plugins: {
                                         title: {
                                             display: true,
-                                            text: 'Pension Amount (₹)'
+                                            text: 'Age-wise Pension Distribution'
                                         },
-                                        ticks: {
-                                            callback: function(value) {
-                                                return '₹' + value.toLocaleString();
+                                        tooltip: {
+                                            callbacks: {
+                                                label: function(context) {
+                                                    const label = context.dataset.label || '';
+                                                    const value = context.raw;
+                                                    if (label.includes('Amount')) {
+                                                        return `${label}: ₹${value.toLocaleString()}`;
+                                                    }
+                                                    return `${label}: ${value.toLocaleString()}`;
+                                                }
                                             }
                                         }
                                     },
-                                    y1: {
-                                        beginAtZero: true,
-                                        position: 'right',
-                                        title: {
-                                            display: true,
-                                            text: 'Number of Pensioners'
+                                    scales: {
+                                        y: {
+                                            beginAtZero: true,
+                                            title: {
+                                                display: true,
+                                                text: 'Pension Amount (₹)'
+                                            },
+                                            ticks: {
+                                                callback: function(value) {
+                                                    return '₹' + value.toLocaleString();
+                                                }
+                                            }
                                         },
-                                        grid: {
-                                            drawOnChartArea: false
-                                        },
-                                        ticks: {
-                                            callback: function(value) {
-                                                return value.toLocaleString();
+                                        y1: {
+                                            beginAtZero: true,
+                                            position: 'right',
+                                            title: {
+                                                display: true,
+                                                text: 'Number of Pensioners'
+                                            },
+                                            grid: {
+                                                drawOnChartArea: false
+                                            },
+                                            ticks: {
+                                                callback: function(value) {
+                                                    return value.toLocaleString();
+                                                }
                                             }
                                         }
                                     }
                                 }
-                            }
-                        });
+                            });
 
                 
                         pieChart = new Chart(pieCtx, {
@@ -1315,6 +1558,7 @@
 
                     const data = response.data;
                     const ruleData = data.rule_data;
+                    const rule_num = data.rule_no
                     rule_data = ruleData;
                     const isRule1Format = ruleData.hasOwnProperty('matched_records');
                     const isRule3Format = ruleData.hasOwnProperty('regular_pension_count');
@@ -1322,7 +1566,18 @@
                     const isRule5Format =  ruleData?.hasOwnProperty('stats');
                     const isRule6Format = ruleData.hasOwnProperty('count_of_active_pensioner');
                     const isRule7Format = ruleData.hasOwnProperty('efp_count');
-
+                    let isRule8Format = false
+                    let isRule9Format = false
+                    let isRule10Format = false
+                    if (rule_num ==8){
+                      isRule8Format = true
+                    }
+                    else if(rule_num == 9){
+                      isRule9Format = true
+                    }
+                    else if(rule_num == 10){
+                      isRule10Format = true
+                    }
                     // Create the appropriate middle column structure
                     createMiddleColumnContent(isRule1Format);
 
@@ -1432,6 +1687,186 @@
                             elements.efpAmount.textContent = (ruleData.efpAmount || 0).toLocaleString();
                         }
                     }
+                      else if(isRule8Format){
+                        try {
+                          if (!response || typeof response !== 'object') {
+                              console.error('Invalid response format');
+                              return;
+                          }
+                          console.log("response 1233",response)
+                          const totalPensionersElement = document.querySelector('.total-pension');
+                          const totalAmountElement = document.querySelector('.total-amount');
+                          const regularPensionTableBody = document.querySelector("#regularPensionTableBody");
+                          const familyPensionTableBody = document.querySelector("#familyPensionTableBody");
+                  
+                          if (!regularPensionTableBody || !familyPensionTableBody) {
+                              console.error("Table body elements not found!");
+                              return;
+                          }
+                  
+                          const monthNames = ['April', 'May', 'June', 'July', 'August', 'September'];
+                  
+                          let totalTurning80Overlay = 0;
+                          let totalEightyPlusZoneChangeOverlay = 0;
+                          let totalTurningEightyZoneChangeOverlay = 0;
+                          let totalTurning80Count = 0;
+                          let totalEightyPlusZoneChange = 0;
+                          let totalTurningEightyZoneChange = 0;
+                  
+                          regularPensionTableBody.innerHTML = "";
+                          familyPensionTableBody.innerHTML = "";
+                  
+                          Object.entries(response.data.rule_data).forEach(([monthKey, monthData], index)=> {
+                              let monthName = monthNames[index] || `Month ${monthKey}`;
+                  
+                              const turning80Count = monthData.turning_80_count || 0;
+                              const turning80Overlay = monthData.turning_80_overlay || 0;
+                              const eightyPlusZoneChange = monthData.eighty_plus_zone_change || 0;
+                              const eightyPlusZoneChangeOverlay = monthData.eighty_plus_zone_change_overlay || 0;
+                              const turningEightyZoneChange = monthData.turning_eighty_zone_change || 0;
+                              const turningEightyZoneChangeOverlay = monthData.turning_eighty_zone_change_overlay || 0;
+                  
+                              totalTurning80Overlay += turning80Overlay;
+                              totalEightyPlusZoneChangeOverlay += eightyPlusZoneChangeOverlay;
+                              totalTurningEightyZoneChangeOverlay += turningEightyZoneChangeOverlay;
+                              totalTurning80Count += turning80Count;
+                              totalEightyPlusZoneChange += eightyPlusZoneChange;
+                              totalTurningEightyZoneChange += turningEightyZoneChange;
+                  
+                              regularPensionTableBody.innerHTML += `
+                                  <tr>
+                                      <td style="padding-right: 15px;">${monthName}</td>
+                                      <td>${turning80Count.toLocaleString()}</td>
+                                      <td>₹${turning80Overlay.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                                  </tr>
+                              `;
+                  
+                              familyPensionTableBody.innerHTML += `
+                                  <tr>
+                                      <td style="padding-right: 15px;">${monthName}</td>
+                                      <td>${eightyPlusZoneChange.toLocaleString()}</td>
+                                      <td>₹${eightyPlusZoneChangeOverlay.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                                  </tr>
+                              `;
+                          });
+                  
+                          if (totalTurning80Count === 0) {
+                              regularPensionTableBody.innerHTML = `<tr><td colspan="3" style="text-align:center;padding-right: 11px;">No Data Available</td></tr>`;
+                          }
+                          if (totalEightyPlusZoneChange === 0) {
+                              familyPensionTableBody.innerHTML = `<tr><td colspan="3" style="text-align:center;padding-right: 11px;">No Data Available</td></tr>`;
+                          }
+                  
+                          let totalPensioners = totalTurning80Count + totalEightyPlusZoneChange + totalTurningEightyZoneChange;
+                          let totalPensionAmount = totalTurning80Overlay + totalEightyPlusZoneChangeOverlay + totalTurningEightyZoneChangeOverlay;
+                  
+                          if (totalPensionersElement) {
+                              totalPensionersElement.textContent = totalPensioners.toLocaleString();
+                          }
+                          if (totalAmountElement) {
+                              totalAmountElement.textContent = `₹${totalPensionAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+                          }
+                        } catch (error) {
+                          console.error("Error processing Rule 8 format: ", error);
+                        }
+                      }
+                      else if(isRule9Format){
+                        try {
+                          if (!response || typeof response !== 'object') {
+                              console.error('Invalid response format');
+                              return;
+                          }
+                  
+                          console.log("Response received:", response);
+                  
+                          const totalPensionersElement = document.querySelector('.total-pension');
+                          const totalAmountElement = document.querySelector('.total-amount');
+                          const regularPensionTableBody = document.querySelector("#regularPensionTableBody");
+                       //   const familyPensionTableBody = document.querySelector("#familyPensionTableBody");
+                  
+                          if (!regularPensionTableBody) {
+                              console.error("Table body elements not found!");
+                              return;
+                          }
+                  
+                          const monthNames = ['April', 'May', 'June', 'July', 'August', 'September'];
+                  
+                          let totalStoppedCases = 0;
+                          let totalStoppedPensionOverlay = 0;
+                  
+                          regularPensionTableBody.innerHTML = "";
+                          //familyPensionTableBody.innerHTML = "";
+                  
+                          console.log("Processing stopped cases data...");
+                  
+                          Object.entries(response.data.rule_data).forEach(([monthKey, monthData], index) => {
+                              let monthName = monthNames[index] || `Month ${monthKey}`;
+                  
+                              console.log(` Processing ${monthName}:`, monthData);
+                  
+                              const stoppedCasesCount = monthData.stopped_cases_count || 0;
+                              const stoppedCasesPensionOverlay = monthData.stopped_cases_pension_overlay || 0;
+                  
+                              totalStoppedCases += stoppedCasesCount;
+                              totalStoppedPensionOverlay += stoppedCasesPensionOverlay;
+                  
+                              // Updating Regular Pension Table
+                              regularPensionTableBody.innerHTML += `
+                                  <tr>
+                                      <td style="padding-right: 15px;">${monthName}</td>
+                                      <td>${stoppedCasesCount.toLocaleString()}</td>
+                                      <td>₹${stoppedCasesPensionOverlay.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                                  </tr>
+                              `;
+                  
+                              // Updating Family Pension Table (same data for now)
+                           //   familyPensionTableBody.innerHTML += `
+                                //  <tr>
+                               //       <td style="padding-right: 15px;">${monthName}</td>
+                               //       <td>${stoppedCasesCount.toLocaleString()}</td>
+                              //        <td>₹${stoppedCasesPensionOverlay.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                              //    </tr>
+                              //`;
+                          });
+                  
+                          if (totalStoppedCases === 0) {
+                              regularPensionTableBody.innerHTML = `<tr><td colspan="3" style="text-align:center;padding-right: 11px;">No Data Available</td></tr>`;
+                              familyPensionTableBody.innerHTML = `<tr><td colspan="3" style="text-align:center;padding-right: 11px;">No Data Available</td></tr>`;
+                          }
+                  
+                          if (totalPensionersElement) {
+                              totalPensionersElement.textContent = totalStoppedCases.toLocaleString();
+                          }
+                          if (totalAmountElement) {
+                              totalAmountElement.textContent = `₹${totalStoppedPensionOverlay.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+                          }
+                  
+                          console.log("Successfully updated UI!");
+                  
+                      } catch (error) {
+                          console.error("Error processing stopped cases data: ", error);
+                      }
+                      
+                      }
+                      else if(isRule10Format){
+                        const totalPensionersElement = document.querySelector('.total-pension');
+                          const totalAmountElement = document.querySelector('.total-amount');
+                          const regularPensionTableBody = document.querySelector("#regularPensionTableBody");
+                          let rule_data = response.data.rule_data
+                          let comm_case_count = rule_data.commutation_cases_count
+                          let comm_case_diff = rule_data.total_commutation_diff
+                          console.log(comm_case_diff,"comm_case_diff")
+                          let formattedCommCaseDiff = comm_case_diff < 0 ? `-₹${Math.abs(comm_case_diff)}` : `₹${comm_case_diff}`;
+                          regularPensionTableBody.innerHTML += `
+                                  <tr>
+                                      <td style="padding-right: 15px;">${comm_case_count}</td>
+                                      
+                                      <td>${formattedCommCaseDiff}</td>
+                                  </tr>
+                              `;
+
+
+                      }
                     else {
 
                         const totalPensionElement = document.querySelector('.total-pension');
@@ -1523,7 +1958,7 @@
                         
                         if(response.rule_comp == "0"){
                           document.getElementById("chart_container").style.display = "block";
-                          updateChartsWithApiData(response);
+                          updateChartsWithApiData(response,);
                           updateMiddleColumn(response);
                         }
                         else{
@@ -1645,6 +2080,7 @@
 
           document.addEventListener("DOMContentLoaded", initializeApp);
 
+ 
             // Add this function to create middle column content
             function createMiddleColumnContent(isRule1Format) {
                 const middleColumn = document.getElementById('middleColumn');
@@ -1655,10 +2091,22 @@
                 const isRule5Format =  ruleData?.hasOwnProperty('stats');
                 const isRule6Format = ruleData.hasOwnProperty('count_of_active_pensioner');
                 const isRule7Format = ruleData.hasOwnProperty('efp_count');
-
+                let isRule8Format = false
+                let isRule9Format = false
+                let isRule10Format = false
+                if (ruleno == 8){
+                  isRule8Format = true
+                }
+                else if(ruleno == 9){
+                  isRule9Format = true
+                }
+                else if(ruleno == 10){
+                  isRule10Format = true
+                }
+             
                 if (isRule4Format) {
                     // Rule 4 content
-        middleColumn.innerHTML = ` <div class="expandable-section">
+                   middleColumn.innerHTML = ` <div class="expandable-section">
                             <div class="section-header">
                                 <div class="header-left">
                                     <span class="dot linked"></span>
@@ -1688,23 +2136,23 @@
                                 </div>
 
                             </div>
-              <div class="section-content" style="max-height: 178px; opacity: 1; padding: 6px 20px;">
-                                <div class="unlinked-content">
-                                    <div class="content-row">
-                                        <span>Unmatched Records</span>
-                                        <span class="unmatched-records">${ruleData.unmatched.toLocaleString()}</span>
-                                    </div>
-                                    <div class="content-row">
-                                        <span>Total Records</span>
-                                        <span class="total-records">${ruleData.total.toLocaleString()}</span>
+                      <div class="section-content" style="max-height: 178px; opacity: 1; padding: 6px 20px;">
+                                        <div class="unlinked-content">
+                                            <div class="content-row">
+                                                <span>Unmatched Records</span>
+                                                <span class="unmatched-records">${ruleData.unmatched.toLocaleString()}</span>
+                                            </div>
+                                            <div class="content-row">
+                                                <span>Total Records</span>
+                                                <span class="total-records">${ruleData.total.toLocaleString()}</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                    `;
+                            `;
                 } else if (isRule3Format) {
                     // Existing Rule 3 content
-        middleColumn.innerHTML = ` <div class="expandable-section">
+                     middleColumn.innerHTML = ` <div class="expandable-section">
                             <div class="section-header">
                                 <div class="header-left">
                                     <span class="dot linked"></span>
@@ -1734,7 +2182,7 @@
                                 </div>
 
                             </div>
-                <div class="section-content" style="max-height: 178px; opacity: 1; padding: 6px 20px;">
+                        <div class="section-content" style="max-height: 178px; opacity: 1; padding: 6px 20px;">
                                 <div class="unlinked-content">
                                     <div class="content-row">
                                         <span>Total Pensioners</span>
@@ -1748,220 +2196,339 @@
                             </div>
                         </div>
                     `;
-      } else if (isRule5Format) {
-        middleColumn.innerHTML = ` <div class="expandable-section">
-                <div class="section-header">
-                    <div class="header-left">
-                        <span class="dot linked"></span>
-                        <h2>Number of Pensioners Added Each Month</h2>
-                    </div>
+                } else if (isRule5Format) {
+                  middleColumn.innerHTML = ` <div class="expandable-section">
+                          <div class="section-header">
+                              <div class="header-left">
+                                  <span class="dot linked"></span>
+                                  <h2>Number of Pensioners Added Each Month</h2>
+                              </div>
 
-                </div>
-                <div class="section-content">
-                    <div class="stats-content">
-                        ${Object.keys(ruleData.stats).map(month => `
-                            <div class="content-row">
-                                <span>${month}</span>
-                                <span >${ruleData.stats[month].count.toLocaleString()}</span>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            </div>
+                          </div>
+                          <div class="section-content">
+                              <div class="stats-content">
+                                  ${Object.keys(ruleData.stats).map(month => `
+                                      <div class="content-row">
+                                          <span>${month}</span>
+                                          <span >${ruleData.stats[month].count.toLocaleString()}</span>
+                                      </div>
+                                  `).join('')}
+                              </div>
+                          </div>
+                      </div>
 
-            <div class="expandable-section active" >
-              <div class="section-header" style="max-height: 178px; opacity: 1; padding: 6px 20px;">
-                    <div class="header-left">
-                        <span class="dot unlinked"></span>
-                        <h2>Total Pension Amount Added Each Month</h2>
-                    </div>
+                      <div class="expandable-section active" >
+                        <div class="section-header" style="max-height: 178px; opacity: 1; padding: 6px 20px;">
+                              <div class="header-left">
+                                  <span class="dot unlinked"></span>
+                                  <h2>Total Pension Amount Added Each Month</h2>
+                              </div>
 
-                </div>
-                <div class="section-content">
-                    <div class="stats-content">
-                        ${Object.keys(ruleData.stats).map(month => `
-                            <div class="content-row">
-                                <span>${month}</span>
-                                <span >₹${ruleData.stats[month].total_pension.toLocaleString()}</span>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            </div>
-                `;
-        if (ruleData.zone_change && ruleData.zone_change != 0) {
-          middleColumn.innerHTML += ` <div class="expandable-section active">
-                <div class="section-header">
-                    <div class="header-left">
-                        <span class="dot unlinked"></span>
-                        <h2>Zone change to NWR</h2>
-                    </div>
+                          </div>
+                          <div class="section-content">
+                              <div class="stats-content">
+                                  ${Object.keys(ruleData.stats).map(month => `
+                                      <div class="content-row">
+                                          <span>${month}</span>
+                                          <span >₹${ruleData.stats[month].total_pension.toLocaleString()}</span>
+                                      </div>
+                                  `).join('')}
+                              </div>
+                          </div>
+                      </div>
+                          `;
+                  if (ruleData.zone_change && ruleData.zone_change != 0) {
+                    middleColumn.innerHTML += ` <div class="expandable-section active">
+                          <div class="section-header">
+                              <div class="header-left">
+                                  <span class="dot unlinked"></span>
+                                  <h2>Zone change to NWR</h2>
+                              </div>
 
-                </div>
-                <div class="section-content">
-                    <div class="stats-content">
-                            <div class="content-row">
-                                <span>Total no of zone change </span>
-                                <span >${ruleData.zone_change.toLocaleString()}</span>
-                            </div>
-                    </div>
-                </div>
-            </div>
-                    `;
+                          </div>
+                          <div class="section-content">
+                              <div class="stats-content">
+                                      <div class="content-row">
+                                          <span>Total no of zone change </span>
+                                          <span >${ruleData.zone_change.toLocaleString()}</span>
+                                      </div>
+                              </div>
+                          </div>
+                      </div>
+                              `;
+                          }
+
+                } else if (isRule1Format) {
+                  middleColumn.innerHTML = ` <div class="expandable-section">
+                                      <div class="section-header">
+                                          <div class="header-left">
+                                              <span class="dot linked"></span>
+                                              <h2>Matched Records</h2>
+                                          </div>
+                            <button class="download-button" onclick="filedownload()" style="min-width: 45px; border-radius:11px; padding: 0px; background: unset;">
+                                          <i class="fas fa-download"></i>
+                                      </button>
+
+                                      </div>
+                                      <div class="section-content">
+                                          <div class="linked-content">
+                                              <div class="content-row">
+                                                  <span>Total Matched</span>
+                                                  <span class="matched-records">0</span>
+                                              </div>
+                                              <div class="content-row">
+                                                  <span>Total Unlinked</span>
+                                                  <span class="unlinked-records">0</span>
+                                              </div>
+                                          </div>
+                                      </div>
+                                  </div>
+
+                                  <div class="expandable-section active">
+                                      <div class="section-header">
+                                          <div class="header-left">
+                                              <span class="dot unlinked"></span>
+                                              <h2>Payment Analysis</h2>
+                                          </div>
+
+                                      </div>
+                        <div class="section-content" style="max-height: 178px; opacity: 1; padding: 6px 20px;">
+                                          <div class="unlinked-content">
+                                              <div class="content-row">
+                                                  <span>Overpayment Cases</span>
+                                                  <span class="overpayment-count">0</span>
+                                              </div>
+                                              <div class="content-row">
+                                                  <span>Overpayment Amount</span>
+                                                  <span class="overpayment-amount">₹0</span>
+                                              </div>
+                                              <div class="content-row">
+                                                  <span>Underpayment Cases</span>
+                                                  <span class="underpayment-count">0</span>
+                                              </div>
+                                              <div class="content-row">
+                                                  <span>Underpayment Amount</span>
+                                                  <span class="underpayment-amount">₹0</span>
+                                              </div>
+                                          </div>
+                                      </div>
+                                  </div>
+                              `;
+                } else if (isRule6Format) {
+                  middleColumn.innerHTML = ` <div class="expandable-section">
+                                      <div class="section-header">
+                                          <div class="header-left">
+                                              <span class="dot linked"></span>
+                                              <h2>Record Summary</h2>
+                                          </div>
+
+                                      </div>
+                                      <div class="section-content">
+                                          <div class="linked-content">
+                                              <div class="content-row">
+                                                  <span>Total Pensioners</span>
+                                                  <span class="total-pensioners">${ruleData.total_pensioner?.toLocaleString() || '0'}</span>
+                                              </div>
+                                              <div class="content-row">
+                                                  <span>Active Pensioners</span>
+                                                  <span class="active-pensioners">${ruleData.count_of_active_pensioner?.toLocaleString() || '0'}</span>
+                                              </div>
+                                              <div class="content-row">
+                                                  <span>Inactive Pensioners</span>
+                                                  <span class="inactive-pensioners">${ruleData.count_of_un_active_pensioner?.toLocaleString() || '0'}</span>
+                                              </div>
+                                          </div>
+                                      </div>
+                                  </div>
+
+                                  <div class="expandable-section active">
+                                      <div class="section-header">
+                                          <div class="header-left">
+                                              <span class="dot unlinked"></span>
+                                              <h2>Payment Analysis</h2>
+                                          </div>
+
+                                      </div>
+                          <div class="section-content" style="max-height: 178px; opacity: 1; padding: 6px 20px;">
+                                          <div class="unlinked-content">
+                                              <div class="content-row">
+                                                  <span>Active Pension Amount</span>
+                                                  <span class="active-pension-amt">₹${ruleData.active_pensioner_amt?.toLocaleString() || '0'}</span>
+                                              </div>
+                                              <div class="content-row">
+                                                  <span>Inactive Pension Amount</span>
+                                                  <span class="inactive-pension-amt">₹${ruleData.un_active_pensioner_amt?.toLocaleString() || '0'}</span>
+                                              </div>
+                                          </div>
+                                      </div>
+                                  </div>
+                              `;
+                } else if (isRule7Format) {
+                    middleColumn.innerHTML = ` <div class="expandable-section">
+                                            <div class="section-header">
+                                                <div class="header-left">
+                                                    <span class="dot linked"></span>
+                                                    <h2> Pensioners Summary</h2>
+                                                </div>
+
+                                            </div>
+                                            <div class="section-content">
+                                                <div class="linked-content">
+                                                    <div class="content-row">
+                                                        <span>Total Pensioners</span>
+                                                        <span class="total-pensioners">${ruleData.total_pensioner.toLocaleString()}</span>
+                                                    </div>
+
+                                                    <div class="content-row">
+                                                        <span>Normal Pension</span>
+                                                        <span class="normal-pension">${ruleData.normal_pension.toLocaleString()}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="expandable-section active">
+                                            <div class="section-header">
+                                                <div class="header-left">
+                                                    <span class="dot unlinked"></span>
+                                                    <h2>Enhance Family Pension </h2>
+                                                </div>
+
+                                            </div>
+                            <div class="section-content" style="max-height: 178px; opacity: 1; padding: 6px 20px; ">
+                                                <div class="unlinked-content">
+                                                    <div class="content-row">
+                                                        <span>Enhance Family Pension Count</span>
+                                                        <span class="efp-count">${ruleData.efp_count.toLocaleString()}</span>
+                                                    </div>
+                                                    <div class="content-row">
+                                                        <span>Enhance Family Pension Amount</span>
+                                                        <span class="efp-amt">₹${ruleData.efp_amt.toLocaleString()}</span>
+                                                    </div>
+
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `;
                 }
+                else if (isRule8Format){
+                  middleColumn.innerHTML = '';
 
-      } else if (isRule1Format) {
-        middleColumn.innerHTML = ` <div class="expandable-section">
-                            <div class="section-header">
-                                <div class="header-left">
-                                    <span class="dot linked"></span>
-                                    <h2>Matched Records</h2>
-                                </div>
-                  <button class="download-button" onclick="filedownload()" style="min-width: 45px; border-radius:11px; padding: 0px; background: unset;">
-                                <i class="fas fa-download"></i>
-                            </button>
+                  middleColumn.innerHTML = `
+                     
+                      <div class="expandable-section" style="background:#fff; border-radius:10px; box-shadow:0px 4px 10px rgba(0, 0, 0, 0.1); padding:15px; margin-bottom:20px;">
+                          <div class="section-header" style="display:flex; align-items:center; font-size:18px; font-weight:bold; padding-bottom:10px; border-bottom:2px solid #f0f0f0;">
+                              <div class="header-left" style="display:flex; align-items:center;">
+                                 
+                                  
+                              </div>
+                          </div>
+                          <div class="section-content" style="max-height: 300px; opacity: 1; padding: 6px 26px; margin-bottom: 26px; overflow-y: auto;">
+                              <table class="styled-table" style="width:100%; border-collapse:collapse; margin-top:10px;">
+                                  <thead>
+                                      <tr style="background:#f8f8f8; text-align:left;">
+                                          <th style="padding-bottom:10px; border-bottom:2px solid #ddd;">Month</th>
+                                          <th style="padding-bottom:10px; border-bottom:2px solid #ddd;">Turning 80+ Count</th>
+                                          <th style="padding-bottom:10px; border-bottom:2px solid #ddd;">Turning 80+ Pension Amount (₹)</th>
+                                      </tr>
+                                  </thead>
+                                  <tbody id="regularPensionTableBody">
+                                      <tr><td colspan="3" style="text-align:center; font-style:italic; color:#999; padding:15px;">No Data Available</td></tr>
+                                  </tbody>
+                              </table>
+                          </div>
+                      </div>
+            
+                     
+                      <div class="expandable-section" style="background:#fff; border-radius:10px; box-shadow:0px 4px 10px rgba(0, 0, 0, 0.1); padding:15px; margin-bottom:20px;">
+                          <div class="section-header" style="display:flex; align-items:center; font-size:18px; font-weight:bold; padding-bottom:10px; border-bottom:2px solid #f0f0f0;">
+                              <div class="header-left" style="display:flex; align-items:center;">
+    
+                              </div>
+                          </div>
+                          <div class="section-content" style="max-height: 300px; opacity: 1; padding: 6px 26px; margin-bottom: 26px; overflow-y: auto;">
+                              <table class="styled-table" style="width:100%; border-collapse:collapse; margin-top:10px;">
+                                  <thead>
+                                      <tr style="background:#f8f8f8; text-align:left;">
+                                          <th style="padding-bottom:10px; border-bottom:2px solid #ddd;">Month</th>
+                                          <th style="padding-bottom:10px; border-bottom:2px solid #ddd;">80 plus from different zone count</th>
+                                          <th style="padding-bottom:10px; border-bottom:2px solid #ddd;">80 plus from different zone count outlay (₹)</th>
+                                      </tr>
+                                  </thead>
+                                  <tbody id="familyPensionTableBody">
+                                      <tr><td colspan="3" style="text-align:center; font-style:italic; color:#999; padding:15px;">No Data Available</td></tr>
+                                  </tbody>
+                              </table>
+                          </div>
+                      </div>
+                  `;
 
-                            </div>
-                            <div class="section-content">
-                                <div class="linked-content">
-                                    <div class="content-row">
-                                        <span>Total Matched</span>
-                                        <span class="matched-records">0</span>
-                                    </div>
-                                    <div class="content-row">
-                                        <span>Total Unlinked</span>
-                                        <span class="unlinked-records">0</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                }
+                else if (isRule9Format){
+                  middleColumn.innerHTML = '';
 
-                        <div class="expandable-section active">
-                            <div class="section-header">
-                                <div class="header-left">
-                                    <span class="dot unlinked"></span>
-                                    <h2>Payment Analysis</h2>
-                                </div>
+                  middleColumn.innerHTML = `
+                     
+                      <div class="expandable-section" style="background:#fff; border-radius:10px; box-shadow:0px 4px 10px rgba(0, 0, 0, 0.1); padding:15px; margin-bottom:20px;">
+                          <div class="section-header" style="display:flex; align-items:center; font-size:18px; font-weight:bold; padding-bottom:10px; border-bottom:2px solid #f0f0f0;">
+                              <div class="header-left" style="display:flex; align-items:center;">
 
-                            </div>
-              <div class="section-content" style="max-height: 178px; opacity: 1; padding: 6px 20px;">
-                                <div class="unlinked-content">
-                                    <div class="content-row">
-                                        <span>Overpayment Cases</span>
-                                        <span class="overpayment-count">0</span>
-                                    </div>
-                                    <div class="content-row">
-                                        <span>Overpayment Amount</span>
-                                        <span class="overpayment-amount">₹0</span>
-                                    </div>
-                                    <div class="content-row">
-                                        <span>Underpayment Cases</span>
-                                        <span class="underpayment-count">0</span>
-                                    </div>
-                                    <div class="content-row">
-                                        <span>Underpayment Amount</span>
-                                        <span class="underpayment-amount">₹0</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-      } else if (isRule6Format) {
-        middleColumn.innerHTML = ` <div class="expandable-section">
-                            <div class="section-header">
-                                <div class="header-left">
-                                    <span class="dot linked"></span>
-                                    <h2>Record Summary</h2>
-                                </div>
+                                  
+                              </div>
+                          </div>
+                          <div class="section-content" style="max-height: 300px; opacity: 1; padding: 6px 26px; margin-bottom: 26px; overflow-y: auto;">
+                              <table class="styled-table" style="width:100%; border-collapse:collapse; margin-top:10px;">
+                                  <thead>
+                                      <tr style="background:#f8f8f8; text-align:left;">
+                                          <th style="padding-bottom:10px; border-bottom:2px solid #ddd;">Month</th>
+                                          <th style="padding-bottom:10px; border-bottom:2px solid #ddd;">Stopped Pensioners Count</th>
+                                          <th style="padding-bottom:10px; border-bottom:2px solid #ddd;">Stopped Pensioners outlay (₹)</th>
+                                      </tr>
+                                  </thead>
+                                  <tbody id="regularPensionTableBody">
+                                      <tr><td colspan="3" style="text-align:center; font-style:italic; color:#999; padding:15px;">No Data Available</td></tr>
+                                  </tbody>
+                              </table>
+                          </div>
+                      </div>
+            
+                     
+                    
+                  `;
 
-                            </div>
-                            <div class="section-content">
-                                <div class="linked-content">
-                                    <div class="content-row">
-                                        <span>Total Pensioners</span>
-                                        <span class="total-pensioners">${ruleData.total_pensioner?.toLocaleString() || '0'}</span>
-                                    </div>
-                                    <div class="content-row">
-                                        <span>Active Pensioners</span>
-                                        <span class="active-pensioners">${ruleData.count_of_active_pensioner?.toLocaleString() || '0'}</span>
-                                    </div>
-                                    <div class="content-row">
-                                        <span>Inactive Pensioners</span>
-                                        <span class="inactive-pensioners">${ruleData.count_of_un_active_pensioner?.toLocaleString() || '0'}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                }
+                else if (isRule10Format){
+                  middleColumn.innerHTML = '';
 
-                        <div class="expandable-section active">
-                            <div class="section-header">
-                                <div class="header-left">
-                                    <span class="dot unlinked"></span>
-                                    <h2>Payment Analysis</h2>
-                                </div>
-
-                            </div>
-                <div class="section-content" style="max-height: 178px; opacity: 1; padding: 6px 20px;">
-                                <div class="unlinked-content">
-                                    <div class="content-row">
-                                        <span>Active Pension Amount</span>
-                                        <span class="active-pension-amt">₹${ruleData.active_pensioner_amt?.toLocaleString() || '0'}</span>
-                                    </div>
-                                    <div class="content-row">
-                                        <span>Inactive Pension Amount</span>
-                                        <span class="inactive-pension-amt">₹${ruleData.un_active_pensioner_amt?.toLocaleString() || '0'}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-      } else if (isRule7Format) {
-        middleColumn.innerHTML = ` <div class="expandable-section">
-                                <div class="section-header">
-                                    <div class="header-left">
-                                        <span class="dot linked"></span>
-                                        <h2> Pensioners Summary</h2>
-                                    </div>
-
-                                </div>
-                                <div class="section-content">
-                                    <div class="linked-content">
-                                        <div class="content-row">
-                                            <span>Total Pensioners</span>
-                                            <span class="total-pensioners">${ruleData.total_pensioner.toLocaleString()}</span>
-                                        </div>
-
-                                        <div class="content-row">
-                                            <span>Normal Pension</span>
-                                            <span class="normal-pension">${ruleData.normal_pension.toLocaleString()}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="expandable-section active">
-                                <div class="section-header">
-                                    <div class="header-left">
-                                        <span class="dot unlinked"></span>
-                                        <h2>Enhance Family Pension </h2>
-                                    </div>
-
-                                </div>
-                <div class="section-content" style="max-height: 178px; opacity: 1; padding: 6px 20px; ">
-                                    <div class="unlinked-content">
-                                        <div class="content-row">
-                                            <span>Enhance Family Pension Count</span>
-                                            <span class="efp-count">${ruleData.efp_count.toLocaleString()}</span>
-                                        </div>
-                                        <div class="content-row">
-                                            <span>Enhance Family Pension Amount</span>
-                                            <span class="efp-amt">₹${ruleData.efp_amt.toLocaleString()}</span>
-                                        </div>
-
-                                    </div>
-                                </div>
-                            </div>
-                        `;
+                  middleColumn.innerHTML = `
+                     
+                      <div class="expandable-section" style="background:#fff; border-radius:10px; box-shadow:0px 4px 10px rgba(0, 0, 0, 0.1); padding:15px; margin-bottom:20px;">
+                          <div class="section-header" style="display:flex; align-items:center; font-size:18px; font-weight:bold; padding-bottom:10px; border-bottom:2px solid #f0f0f0;">
+                              <div class="header-left" style="display:flex; align-items:center;">
+                                 
+                                  
+                              </div>
+                          </div>
+                          <div class="section-content" style="max-height: 300px; opacity: 1; padding: 6px 26px; margin-bottom: 26px; overflow-y: auto;">
+                              <table class="styled-table" style="width:100%; border-collapse:collapse; margin-top:10px;">
+                                  <thead>
+                                      <tr style="background:#f8f8f8; text-align:left;">
+                                          <th style="padding-bottom:10px; border-bottom:2px solid #ddd;">Commutation Case Count</th>
+                                          
+                                          <th style="padding-bottom:10px; border-bottom:2px solid #ddd;">Total Commutation Difference Amount (₹)</th>
+                                      </tr>
+                                  </thead>
+                                  <tbody id="regularPensionTableBody">
+                                    
+                                  </tbody>
+                              </table>
+                          </div>
+                      </div>
+            
+                     
+              
+                  `;
+                  
                 }
                 else {
                     middleColumn.innerHTML = `
@@ -1995,14 +2562,15 @@
                                 </div>
 
                             </div>
-                <div class="section-content" style="max-height: 178px; opacity: 1; padding: 6px 20px;">
-                                <div class="unlinked-content">
-                                    <!-- Age-wise data will be dynamically inserted here -->
+                    <div class="section-content" style="max-height: 178px; opacity: 1; padding: 6px 20px;">
+                                    <div class="unlinked-content">
+                                        <!-- Age-wise data will be dynamically inserted here -->
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    `;
+                        `;
                 }
+               
 
                 // Reinitialize expandable sections
                 {% comment %} initializeExpandableSections(); {% endcomment %}
@@ -2505,12 +3073,15 @@
               "Active Pensioner": "6",
               "Enhanced Family Pension": "7",
               "New Pensioners": "5",
+              "Age Bracket": "8",
+              "Stopped Pensioner": "9",
+              "Commutation Mismatch": "10"
             };
           
             function getRuleIdFromActiveItem() {
               const activeItem = document.querySelector(".notification-item.active");
               if (activeItem) {
-          const headerSpan = activeItem.querySelector(".notification-header span");
+                const headerSpan = activeItem.querySelector(".notification-header span");
                 const ruleName = headerSpan ? headerSpan.textContent.trim() : "";
                 return ruleIdMap[ruleName] || "1";
               }
@@ -2536,15 +3107,10 @@
             notificationItems.forEach((item) => {
               if (!item.dataset.listenerAdded) {
                 item.addEventListener("click", handleClick);
-                item.dataset.listenerAdded = "true"; // Mark it to prevent duplicates
+                item.dataset.listenerAdded = "true";
               }
             });
-          
-          
-          
             const finalRuleId = getRuleIdFromActiveItem();
-           
-          
             handleRuleOrFunctionSelect(finalRuleId);
           }
           
@@ -2816,7 +3382,9 @@
           }
       });
 
-  function updateCompCharts(response, rule) {
+
+
+function updateCompCharts(response, rule) {
     console.log(rule, "rule");
     try {
         if (!response || typeof response !== "object") {
@@ -3219,10 +3787,7 @@
     }
 }
                                                          
-                                                                  
-                                                         
-    
-    
+                                                                    
 function getRandomColor() {
     return `#${Math.floor(Math.random() * 16777215).toString(16)}`;
 }
@@ -3818,73 +4383,13 @@ function updateCompRule(rule) {
     }
 }
 
-function createBarChart(canvasId, labels, data1, data2, label1 = 'Dataset 1', label2 = 'Dataset 2') {
-  const canvas = document.getElementById(canvasId);
-
-  if (!canvas) {
-      console.error(`Canvas with ID '${canvasId}' not found.`);
-      return;
-  }
-
-  const ctx = canvas.getContext('2d');
-  if (!ctx) {
-      console.error(`Unable to get context for canvas ID '${canvasId}'.`);
-      return;
-  }
-
-  new Chart(ctx, {
-      type: 'bar',
-      data: {
-          labels: labels,
-          datasets: [
-              {
-                  label: label1,
-                  data: data1,
-                  backgroundColor: 'rgba(54, 162, 235, 0.6)'
-              },
-              {
-                  label: label2,
-                  data: data2,
-                  backgroundColor: 'rgba(255, 99, 132, 0.6)'
-              }
-          ]
-      }
-  });
-}
-
-
-function createLineChart(canvasId, labels, data1, data2, label1 = 'Dataset 1', label2 = 'Dataset 2') {
-  let ctx = document.getElementById(canvasId).getContext('2d');
-  new Chart(ctx, {
-      type: 'line',
-      data: {
-          labels: labels,
-          datasets: [
-              {
-                  label: label1,
-                  data: data1,
-                  borderColor: 'rgba(75, 192, 192, 1)',
-                  fill: false
-              },
-              {
-                  label: label2,
-                  data: data2,
-                  borderColor: 'rgba(255, 159, 64, 1)',
-                  fill: false
-              }
-          ]
-      }
-  });
-}
 
     </script>
 
     <script>
       const fromMonth = document.getElementById('from-month');
       const toMonth = document.getElementById('to-month');
-      // const resetBtn = document.getElementById('reset-btn');
 
-      // Set minimum month for "To" field based on "From" month
       fromMonth.addEventListener('change', function() {
           toMonth.min = fromMonth.value;
           if (toMonth.value && toMonth.value < fromMonth.value) {
