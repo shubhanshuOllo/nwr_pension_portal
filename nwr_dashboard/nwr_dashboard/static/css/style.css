@@ -65,15 +65,16 @@ body {
 /* Main content layout */
 .main-content {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 1fr .4fr;
     gap: 8px;
     padding: 6px;
     position: relative;
     padding-bottom: 0px;
-    height: calc(100% - 77px);
+    height: calc(100% - 78px);
     background-color: #fff;
     margin-top: 12px;
     overflow: auto;
+    padding-top: 0;
     
 }
 
@@ -113,10 +114,10 @@ body {
 .card {
     background: #F8FAFC;
     border-radius: 10px;
-    padding: 12px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    padding: 8px 12px;
+    /* box-shadow: 0 2px 5px rgba(0,0,0,0.05); */
     margin: 0;  /* Remove the margin we added */
-    height: 98%;
+    /* height: 98%; */
 }
 
 /* Remove the border styles */
@@ -126,10 +127,16 @@ body {
 
 /* Chart container */
 .chart-container {
-    width: 100%;
+    /* width: 100%; */
     height: 250px;  /* Adjusted height to accommodate both charts */
-    margin: 1rem 0;
+    /* margin: 1rem 0; */
     position: relative;
+    background: #fff;
+    /* box-shadow: 0px 1.07px 23.04px 0px #7090B01F; */
+    padding: 12px;
+    border-radius: 12px;
+    box-sizing: revert;
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 5px 0px, rgba(0, 0, 0, 0.1) 0px 0px 1px 0px;
 }
 
 canvas {
@@ -163,7 +170,7 @@ canvas {
 /* Chatbot styles */
 .chatbot {
     background: #F8FAFC;
-    border-radius: 12px;
+    border-radius: 0px 12px 12px 12px;
     /* box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); */
     display: flex;
     flex-direction: column;
@@ -176,6 +183,7 @@ canvas {
     height: 98%;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
     padding-bottom: 0;
+    padding-top: 0px;
     
 
 }
@@ -264,7 +272,7 @@ canvas {
     gap: 4px;
 }
 
-.notification-item {
+/* .notification-item {
     background: #fff;
     border-radius: 8px;
     padding: 15px;
@@ -281,9 +289,9 @@ canvas {
 .notification-item:hover {
     transform: translateY(-2px);
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
-}
+} */
 
-.notification-header {
+/* .notification-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -293,7 +301,7 @@ canvas {
 .notification-header span {
     font-weight: 500;
     color: #333;
-}
+} */
 
 .status-dot {
     width: 8px;
@@ -327,10 +335,10 @@ canvas {
     position: relative;
     z-index: 1;
     overflow: auto;
-    margin-top: 0;
+    /* margin-top: 0; */
     background: white;
-    margin-top: 12px;
-    border-radius: 12px;
+    /* margin-top: 12px; */
+    /* border-radius: 12px; */
     box-shadow: 0px 22.07px 49.04px 0px #7090B01F;
 }
 
@@ -338,7 +346,7 @@ canvas {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 16px;
+    padding: 12px 16px;
     border-bottom: 1px solid #eee;
 }
 
@@ -483,9 +491,9 @@ canvas {
     margin: 6px;
 }
 
-.send-button:hover {
+/* .send-button:hover {
     background: #5a4ee6;
-}
+} */
 
 /* Stats section */
 .stats {
@@ -528,7 +536,7 @@ canvas {
 }
 .download-button{
     color: #5346ff;
-    background: white !important ;
+    /* background: white !important ; */
    
 }
 
@@ -550,7 +558,7 @@ canvas {
 }
 
 /* Responsive styles */
-@media screen and (max-width: 1400px) {
+/* @media screen and (max-width: 1400px) {
     .main-content {
         grid-template-columns: 1fr 300px 500px;
     }
@@ -572,11 +580,11 @@ canvas {
     }
 
     .card::after {
-        display: none;  /* Remove borders on smaller screens */
+        display: none; 
     }
-}
+} */
 
-@media screen and (max-width: 768px) {
+/* @media screen and (max-width: 768px) {
     .main-content {
         grid-template-columns: 1fr;
         padding: 1rem;
@@ -608,7 +616,7 @@ canvas {
     }
 
     .chart-container {
-        height: 200px;  /* Smaller height for mobile */
+        height: 200px;  
     }
 
     .stats {
@@ -625,10 +633,10 @@ canvas {
         width: 100%;
         max-width: none;
     }
-}
+} */
 
 /* Additional responsive improvements */
-@media screen and (max-width: 480px) {
+/* @media screen and (max-width: 480px) {
     .card {
         padding: 1rem;
     }
@@ -657,25 +665,37 @@ canvas {
     .message {
         max-width: 90%;
     }
-}
+} */
 
 /* Update these styles for the middle column */
 .middle-column {
     overflow: auto;
-    padding: 12px;
+    padding: 8px 12px;
     background-color: #F8FAFC;
-
-    height: 98%;
+    /* height: 98%; */
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-column-gap: 8px;
+    flex: 1;
+    min-height: 268px;
+    margin-top: 12px;
+    padding-top: 0px;
 }
 
 .expandable-section {
     background-color: #fff;
     /* border: 1px solid #eee; */
     border-radius: 12px;
-    margin-bottom: 1rem;
+    /* margin-bottom: 1rem; */
     overflow: hidden;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-    border: 1px solid #C7C7C7;
+    /* box-shadow: 0 2px 4px rgba(0,0,0,0.02); */
+    /* border: 1px solid #C7C7C7; */
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    /* box-shadow: 0px 22.07px 49.04px 0px #7090B01F; */
+    /* padding: 12px; */
+    margin-top: 8px;
 
 }
 
@@ -700,7 +720,7 @@ canvas {
 }
 
 .section-header {
-    padding: 1.2rem 1.5rem;
+    padding: 1rem 1.2rem;
     background-color: #fff;
     display: flex;
     justify-content: space-between;
@@ -711,8 +731,9 @@ canvas {
 }
 
 .section-header h2 {
-    font-size: 1rem;
-    font-weight: 500;
+    margin-right: 12px;
+    font-weight: 600;
+    font-size: 16px;
     color: #333;
 }
 
@@ -725,13 +746,17 @@ canvas {
     
     
 }
-
+.unlinked-content .content-row:last-child{
+    padding: 0.6rem 0px;
+}
 .expandable-section.active .section-content {
     max-height: 300px;
     opacity: 1;
-    padding: 6px 26px;
-    margin-bottom: 26px;
+    padding: 6px 20px;
+    /* margin-bottom: 26px; */
         max-height: fit-content !important;
+        overflow: auto;
+        box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 5px 0px, rgba(0, 0, 0, 0.1) 0px 0px 1px 0px;
 }
 
 .expandable-section.active .section-header {
@@ -742,7 +767,7 @@ canvas {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.8rem 0;
+    padding: 0.6rem 0;
     color: #666;
     font-size: 0.9rem;
 }
@@ -1092,7 +1117,7 @@ canvas {
     /* margin-bottom: 1rem; */
     background-color: #F8FAFC;
 }
-
+/* 
 .notification-header {
     display: flex;
     justify-content: space-between;
@@ -1113,7 +1138,7 @@ canvas {
     border: none;
     cursor: pointer;
     font-size: 1.2rem;
-}
+} */
 
 .message-item {
     padding: 1rem 0;

@@ -65,7 +65,6 @@
           justify-content: center;
           transition: background-color 0.3s;
           white-space: nowrap;
-          /* min-width: 180px; */
           color: white;
           padding: 8px 16px;
           border-radius: 5px;
@@ -82,6 +81,106 @@
         .submit_date_nwr:hover {
             color: #333;
         }
+
+    .nwr-select-wrapper {
+      position: relative;
+      width: 346px;
+      margin-right: 32px;
+    }
+
+    .nwr-select-btn {
+      width: 100%;
+      padding: 9px 15px;
+      background: white;
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      color: #333;
+      transition: all 0.3s ease;
+    }
+
+    .nwr-select-btn:hover {
+      box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.05);
+    }
+
+    .nwr-select-btn.active {
+      box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+    }
+
+    .nwr-select-btn .arrow {
+      color: #666;
+      transition: transform 0.3s ease;
+    }
+
+    .nwr-select-btn.active .arrow {
+      transform: rotate(180deg);
+    }
+
+    .nwr-select-dropdown {
+      position: absolute;
+      top: calc(100% + 5px);
+      left: 0;
+      width: 100%;
+      background: white;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-10px);
+      transition: all 0.3s ease;
+      z-index: 1000;
+    }
+
+    .nwr-select-dropdown.show {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .nwr-select-option {
+      padding: 12px 15px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nwr-select-option:first-child {
+      border-radius: 8px 8px 0 0;
+    }
+
+    .nwr-select-option:last-child {
+      border-radius: 0 0 8px 8px;
+    }
+
+    .nwr-select-option:hover {
+      background-color: #f8f9fa;
+    }
+
+    .nwr-select-option.selected {
+      background-color: #4c43dc;
+      color: #ffffff;
+    }
+
+    .nwr-select-option .check-icon {
+      color: #ffffff;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .nwr-select-option.selected .check-icon {
+      opacity: 1;
+    }
+
+    .nwr-select-option .notification-header span {
+      font-size: 14px;
+    }
     </style>
   </head>
   <body>
@@ -92,12 +191,7 @@
     <div style="height: 100vh; display: flex ; flex-direction: column;">
     <nav class="navbar">
       <div class="logo-section">
-        <img
-          src="{% static 'images/rail_logo.png' %}"
-          alt="Railway Logo"
-          class="logo"
-        />
-
+        <img src="{% static 'images/rail_logo.png' %}" alt="Railway Logo" class="logo" />
           <h1 style="font-weight: 400;"><span style="color:#101828; font-weight: 500;">NWR</span> Pension Portal</h1>
       </div>
       <button class="upload-button auto_margin_btn">
@@ -125,41 +219,80 @@
     </nav>
 
     <div class="main-content">
-      <!-- Left Column -->
-      <div class="card">
-      
-
+      <div style="overflow: auto; display: flex; flex-direction: column; height: 100%; border-radius: 2px; padding: 12px 6px; padding-top: 0px;">
+        <div style="display: flex; padding: 12px; align-items: center;">
+          <span style="margin-right: 12px; font-weight: 600; font-size: 16px; color: #333;">Rules and Function</span>
+          <div class="nwr-select-wrapper">
+            <div class="nwr-select-btn">
+              <span class="nwr-selected-text">Overall underpayment/overpayment</span>
+              <i class="fas fa-chevron-down arrow"></i>
+            </div>
+            <div class="nwr-select-dropdown">
+              <div class="nwr-select-options">
+                <div class="nwr-select-option notification-item selected active" data-value="1">
+                  <i class="fas fa-check check-icon"></i>
+                  <div class="notification-header">
+                    <span>Overall underpayment/overpayment</span>
+                  </div>
+                </div>
+                <div class="nwr-select-option notification-item" data-value="2">
+                  <i class="fas fa-check check-icon"></i>
+                  <div class="notification-header">
+                    <span>Age Metrics</span>
+                  </div>
+                </div>
+                <div class="nwr-select-option notification-item" data-value="3">
+                  <i class="fas fa-check check-icon"></i>
+                  <div class="notification-header">
+                    <span>Family Pension Conversion</span>
+                  </div>
+                </div>
+                <div class="nwr-select-option notification-item" data-value="4">
+                  <i class="fas fa-check check-icon"></i>
+                  <div class="notification-header">
+                    <span>New Pensioners</span>
+                  </div>
+                </div>
+                <div class="nwr-select-option notification-item" data-value="5">
+                  <i class="fas fa-check check-icon"></i>
+                  <div class="notification-header">
+                    <span>Active Pensioner</span>
+                  </div>
+                </div>
+                <div class="nwr-select-option notification-item" data-value="6">
+                  <i class="fas fa-check check-icon"></i>
+                  <div class="notification-header">
+                    <span>Enhanced Family Pension</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <span style="margin-right: 12px; font-weight: 600; font-size: 16px; color: #333;">Date Range</span>
         <div class="date-range-container">
           <div class="date-input-group">
               <label for="from-month">From</label>
-              <input type="month" id="from-month" value="2024-09" onchange = "initializeNotificationHandlers()" >
+              <input type="month" id="from-month" value="2024-09" onchange="initializeNotificationHandlers()">
           </div>
           <div class="date-input-group">
               <label for="to-month">To</label>
-              <input type="month" id="to-month" value="2024-09" onchange = "initializeNotificationHandlers()">
+              <input type="month" id="to-month" value="2024-09" onchange="initializeNotificationHandlers()">
           </div>
-       
         </div>
-  
-        <div class="chart-container">
+        </div>
+        <div style="overflow: auto; display: flex; flex-direction: column; flex: 1; border-radius: 12px;">
+          <div class="card">
+            <div style="display: flex; gap: 8px;">
+              <div class="chart-container" style=" flex: 1;">
           <canvas id="lineChart"></canvas>
         </div>
-        <div class="chart-container">
+              <div class="chart-container" id = "chart_container" style="width: 300px;">
           <canvas id="pieChart"></canvas>
         </div>
-        {% comment %} <div class="chart-container">
-          <canvas id="linkedPieChart"></canvas>
         </div>
-
-        <!-- Second Pie Chart: Matched Cases Breakdown -->
-        <div class="chart-container">
-          <canvas id="matchedPieChart"></canvas>
-        </div> {% endcomment %}
       </div>
 
-      <!-- Middle Column -->
       <div class="card middle-column" id="middleColumn">
-        <!-- Content will be dynamically inserted here -->
         <div class="expandable-section">
           <div class="section-header">
             <div class="header-left">
@@ -210,87 +343,6 @@
           </div>
         </div>
       </div>
-
-      <!-- Right Column - Chatbot -->
-      <div class="chatbot">
-        <!-- Rules and Functions Section -->
-          <div class="rules-section" >
-            <div class="rules-header" id="rulesSection">
-            <h2>Rules and Functions</h2>
-            <button class="toggle-button">
-                <i class="fas fa-angle-down" style="color: white;"></i>
-            </button>
-          </div>
-          <div class="rules-content">
-            <div class="message-notifications">
-              <div class="notification-item">
-                <div class="notification-header">
-                  <span>Overall underpayment/overpayment</span>
-                  <span class="status-dot"></span>
-                </div>
-                <p class="notification-preview">
-                  Analyze and track payment discrepancies in pension
-                  disbursements
-                </p>
-              </div>
-              <div class="notification-item">
-                <div class="notification-header">
-                  <span>Age Metrics</span>
-                  <span class="status-dot"></span>
-                </div>
-                <p class="notification-preview">
-                  View and analyze age-related pension metrics and statistics
-                </p>
-              </div>
-              <div class="notification-item">
-                <div class="notification-header">
-                  <span>Family Pension Conversion</span>
-                  <span class="status-dot"></span>
-                </div>
-                <p class="notification-preview">
-                  Track and manage family pension conversion cases
-                </p>
-              </div>
-              {% comment %}
-              <div class="notification-item">
-                <div class="notification-header">
-                  <span>Pay commission revisions</span>
-                  <span class="status-dot"></span>
-                </div>
-                <p class="notification-preview">
-                  Monitor and implement pay commission revision updates
-                </p>
-              </div>
-              {% endcomment %}
-              <div class="notification-item">
-                <div class="notification-header">
-                  <span>New Pensioners</span>
-                  <span class="status-dot"></span>
-                </div>
-                <p class="notification-preview">
-                  View and process new pension applications and cases
-                </p>
-              </div>
-              <div class="notification-item">
-                <div class="notification-header">
-                  <span>Active Pensioner</span>
-                  <span class="status-dot"></span>
-                </div>
-                <p class="notification-preview">
-                  View and process Active Pensioner applications and cases
-                </p>
-              </div>
-              <div class="notification-item">
-                <div class="notification-header">
-                  <span>Enhanced Family Pension</span>
-                  <span class="status-dot"></span>
-                </div>
-                <p class="notification-preview">
-                  View and process Enhacned Family Pension applications and
-                  cases
-                </p>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -308,22 +360,10 @@
             </div>
           </div>
           <div class="chat-messages" id="chatMessages">
-            <!-- Messages will be dynamically added here -->
           </div>
           <div class="chat-input-container">
             <div class="input-wrapper">
-              <!-- <button class="attachment-button">
-                            <i class="fas fa-paperclip"></i>
-                        </button> -->
-              <input
-                type="text"
-                placeholder="Message to RailBot..."
-                id="chat_input"
-                class="message-input"
-              />
-              <!-- <button class="emoji-button">
-                            <i class="far fa-smile"></i>
-                        </button> -->
+              <input type="text" placeholder="Message to RailBot..." id="chat_input" class="message-input" />
             </div>
             <button class="send-button" onclick="submit_chat()">
               Send
@@ -332,18 +372,12 @@
           </div>
            
       </div>
-      <div style=" display: flex; flex-direction: column; align-items: flex-end;  margin-bottom: 0px; background-color: #F8FAFC;  padding-top: 6px;">
-        <span style="background: linear-gradient(180deg, #292578 0%, #4C44DE 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; text-fill-color: transparent; font-style: italic;  font-size: 14px; padding-right: 4px; ">Built by Degreemaster.ai</span>
-               <div class="arrow_Degreemaster"></div>
+        <img src="/static/images/degreemaster.png" alt="degreemaster Logo" class="logo"
+          style="width: 146px; display: flex ; margin: 12px; margin-left: auto;">
         </div>
       </div>
     </div>
-      <!-- <div style="background: url(../../static/css/Indian_Railways_converted.png) no-repeat center; opacity: .1; background-size: contain; height: 100%; width: 100%; position: absolute; z-index: 1; left: 0px; right: 0; top: 0; bottom: 0; pointer-events: none;"> -->
 
-      </div>
-    </div>
-
-    <!-- Add this HTML right before the chat input div for typing indicator -->
     <div class="typing-indicator" style="display: none">
       <div class="dot"></div>
       <div class="dot"></div>
@@ -358,11 +392,7 @@
           <button class="modal-close"><i class="fas fa-times"></i></button>
         </div>
         <div class="file-upload-container">
-          <input
-            type="file"
-            class="file-upload-input"
-            accept=".xlsx,.xls,.csv"
-          />
+        <input type="file" class="file-upload-input" accept=".xlsx,.xls,.csv" />
           <i class="fas fa-cloud-upload-alt"></i>
           <p>Click to upload or drag and drop</p>
           <p class="selected-file"></p>
@@ -376,8 +406,6 @@
       </div>
     </div>
 
-   
-
     <div id="nwrMasterModal" class="modal">
       <div class="modal-content">
         <div class="modal-header">
@@ -385,11 +413,7 @@
           <button class="modal-close"><i class="fas fa-times"></i></button>
         </div>
         <div class="file-upload-container">
-          <input
-            type="file"
-            class="file-upload-input"
-            accept=".xlsx,.xls,.csv"
-          />
+        <input type="file" class="file-upload-input" accept=".xlsx,.xls,.csv" />
           <i class="fas fa-cloud-upload-alt"></i>
           <p>Click to upload or drag and drop</p>
           <p class="selected-file"></p>
@@ -410,11 +434,7 @@
           <button class="modal-close"><i class="fas fa-times"></i></button>
         </div>
         <div class="file-upload-container">
-          <input
-            type="file"
-            class="file-upload-input"
-            accept=".xlsx,.xls,.csv"
-          />
+        <input type="file" class="file-upload-input" accept=".xlsx,.xls,.csv" />
           <i class="fas fa-cloud-upload-alt"></i>
           <p>Click to upload or drag and drop</p>
           <p class="selected-file"></p>
@@ -441,99 +461,6 @@
           let pieChart = null;
           let rule_data = null;
 
-            // Function to initialize charts with default data
-            {% comment %} function initializeDefaultCharts() {
-                const defaultData = {
-                    labels: ['Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb'],
-                    lineData1: [35000, 65000, 22000, 25000, 58000, 30000],
-                    lineData2: [20000, 30000, 52000, 40000, 15000, 45000],
-                    pieData: [63, 25, 22]
-                };
-
-                const lineCtx = document.getElementById('lineChart').getContext('2d');
-                const pieCtx = document.getElementById('pieChart').getContext('2d');
-
-                // Destroy existing charts if they exist
-                if (lineChart) {
-                    lineChart.destroy();
-                    lineChart = null;
-                }
-                if (pieChart) {
-                    pieChart.destroy();
-                    pieChart = null;
-                }
-
-                // Create line chart
-                lineChart = new Chart(lineCtx, {
-                    type: 'line',
-                    data: {
-                        labels: defaultData.labels,
-                        datasets: [{
-                            label: 'Overpayments (₹)',
-                            data: defaultData.lineData1,
-                            borderColor: '#6B5EFF',
-                            tension: 0.4,
-                            fill: false
-                        }, {
-                            label: 'Underpayments (₹)',
-                            data: defaultData.lineData2,
-                            borderColor: '#36A2EB',
-                            tension: 0.4,
-                            fill: false
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            title: {
-                                display: true,
-                                text: 'Month-over-Month Trends'
-                            }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                title: {
-                                    display: true,
-                                    text: 'Amount (₹)'
-                                }
-                            }
-                        }
-                    }
-                });
-
-                // Create pie chart
-                pieChart = new Chart(pieCtx, {
-                    type: 'pie',
-                    data: {
-                        labels: ['Overpayments', 'Underpayments', 'Not Found'],
-                        datasets: [{
-                            data: defaultData.pieData,
-                            backgroundColor: [
-                                '#6B5EFF',
-                                '#36A2EB',
-                                '#dbdbd9'
-                            ],
-                            borderColor: '#FFFFFF',
-                            borderWidth: 2
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                position: 'bottom'
-                            },
-                            title: {
-                                display: true,
-                                text: 'Payment Distribution'
-                            }
-                        }
-                    }
-                });
-            } {% endcomment %}
 
           // Function to update charts with API data
           function updateChartsWithApiData(response) {
@@ -1003,17 +930,6 @@
                           "Underpayment Cases"
                       ],
                       datasets: [
-                          // First Layer - Main Categories
-                          /*{
-                              data: [
-                                  ruleData.unlinked_records, // Unlinked records
-                                  ruleData.matched_records, // Total Matched records
-                              ],
-                              backgroundColor: ["#36A2EB", "#6B5EFF"], // Blue shades
-                              borderColor: "#FFFFFF",
-                              borderWidth: 2,
-                          },*/
-                          // Second Layer - Breakdown of Matched Records
                           {
                               data: [
                                   ruleData.unlinked_records, // Keep same as outer layer to align visually
@@ -1250,7 +1166,7 @@
                       });
                   }
                   else {
-               
+          // Rule 2: Create line chart for age-wise distribution
                 const ageRanges = Object.keys(ruleData).sort((a, b) => {
                   const aStart = parseInt(a.split("-")[0]);
                   const bStart = parseInt(b.split("-")[0]);
@@ -1564,7 +1480,7 @@
                   content.style.maxHeight = `${content.scrollHeight}px`;
                   content.style.opacity = "1";
                   content.style.padding = "6px 26px";
-                  content.style.marginBottom = "26px";
+            // content.style.marginBottom = "26px";
                 }
               }
             } catch (error) {
@@ -1573,9 +1489,6 @@
           }
 
           async function fetchRuleData(ruleId, monthList) {
-            
-
-        
             try {
                 // Convert the array into multiple query parameters
                 const queryString = monthList.map(m => `month=${encodeURIComponent(m)}`).join("&");
@@ -1607,13 +1520,14 @@
                    
                     if (response && response.success) {
                         window.currentResponse = response; // Store the response
-                        console.log()
+                        
                         if(response.rule_comp == "0"){
+                          document.getElementById("chart_container").style.display = "block";
                           updateChartsWithApiData(response);
                           updateMiddleColumn(response);
                         }
                         else{
-                         
+                          document.getElementById("chart_container").style.display = "block";
 
                           updateCompCharts(response.rule_data,response.rule);
                        
@@ -1690,7 +1604,7 @@
                   content.style.maxHeight = `${content.scrollHeight}px`;
                   content.style.opacity = "1";
                   content.style.padding = "6px 26px";
-                  content.style.marginBottom = "26px";
+            // content.style.marginBottom = "26px";
                 } else {
                   content.style.maxHeight = "0px";
                   content.style.opacity = "0";
@@ -1744,8 +1658,7 @@
 
                 if (isRule4Format) {
                     // Rule 4 content
-                    middleColumn.innerHTML = `
-                        <div class="expandable-section">
+        middleColumn.innerHTML = ` <div class="expandable-section">
                             <div class="section-header">
                                 <div class="header-left">
                                     <span class="dot linked"></span>
@@ -1763,14 +1676,6 @@
                                         <span>Not Revised</span>
                                         <span class="old-records">${ruleData.old?.toLocaleString() || '0'}</span>
                                     </div>
-                                    {% comment %} <div class="content-row">
-                                        <span>Unmatched Records</span>
-                                        <span class="unmatched-records">${ruleData.unmatched?.toLocaleString() || '0'}</span>
-                                    </div>
-                                    <div class="content-row">
-                                        <span>Total Records</span>
-                                        <span class="total-records">${ruleData.total?.toLocaleString() || '0'}</span>
-                                    </div> {% endcomment %}
                                 </div>
                             </div>
                         </div>
@@ -1783,7 +1688,7 @@
                                 </div>
 
                             </div>
-                            <div class="section-content" style="max-height: 178px; opacity: 1; padding: 6px 26px; margin-bottom: 26px;">
+              <div class="section-content" style="max-height: 178px; opacity: 1; padding: 6px 20px;">
                                 <div class="unlinked-content">
                                     <div class="content-row">
                                         <span>Unmatched Records</span>
@@ -1799,8 +1704,7 @@
                     `;
                 } else if (isRule3Format) {
                     // Existing Rule 3 content
-                    middleColumn.innerHTML = `
-                        <div class="expandable-section">
+        middleColumn.innerHTML = ` <div class="expandable-section">
                             <div class="section-header">
                                 <div class="header-left">
                                     <span class="dot linked"></span>
@@ -1830,7 +1734,7 @@
                                 </div>
 
                             </div>
-                            <div class="section-content" style="max-height: 178px; opacity: 1; padding: 6px 26px; margin-bottom: 26px;">
+                <div class="section-content" style="max-height: 178px; opacity: 1; padding: 6px 20px;">
                                 <div class="unlinked-content">
                                     <div class="content-row">
                                         <span>Total Pensioners</span>
@@ -1844,9 +1748,8 @@
                             </div>
                         </div>
                     `;
-                } else if(isRule5Format){
-                    middleColumn.innerHTML = `
-                    <div class="expandable-section">
+      } else if (isRule5Format) {
+        middleColumn.innerHTML = ` <div class="expandable-section">
                 <div class="section-header">
                     <div class="header-left">
                         <span class="dot linked"></span>
@@ -1867,7 +1770,7 @@
             </div>
 
             <div class="expandable-section active" >
-                <div class="section-header" style="max-height: 178px; opacity: 1; padding: 6px 26px; margin-bottom: 26px;">
+              <div class="section-header" style="max-height: 178px; opacity: 1; padding: 6px 20px;">
                     <div class="header-left">
                         <span class="dot unlinked"></span>
                         <h2>Total Pension Amount Added Each Month</h2>
@@ -1886,9 +1789,8 @@
                 </div>
             </div>
                 `;
-                if  (ruleData.zone_change && ruleData.zone_change!=0){
-                    middleColumn.innerHTML += `
-                    <div class="expandable-section active">
+        if (ruleData.zone_change && ruleData.zone_change != 0) {
+          middleColumn.innerHTML += ` <div class="expandable-section active">
                 <div class="section-header">
                     <div class="header-left">
                         <span class="dot unlinked"></span>
@@ -1908,15 +1810,14 @@
                     `;
                 }
 
-                }else if (isRule1Format) {
-                    middleColumn.innerHTML = `
-                        <div class="expandable-section">
+      } else if (isRule1Format) {
+        middleColumn.innerHTML = ` <div class="expandable-section">
                             <div class="section-header">
                                 <div class="header-left">
                                     <span class="dot linked"></span>
                                     <h2>Matched Records</h2>
                                 </div>
-                                <button class="download-button" onclick="filedownload()" style="min-width: 45px;border-radius:11px ">
+                  <button class="download-button" onclick="filedownload()" style="min-width: 45px; border-radius:11px; padding: 0px; background: unset;">
                                 <i class="fas fa-download"></i>
                             </button>
 
@@ -1943,7 +1844,7 @@
                                 </div>
 
                             </div>
-                            <div class="section-content" style="max-height: 178px; opacity: 1; padding: 6px 26px; margin-bottom: 26px;">
+              <div class="section-content" style="max-height: 178px; opacity: 1; padding: 6px 20px;">
                                 <div class="unlinked-content">
                                     <div class="content-row">
                                         <span>Overpayment Cases</span>
@@ -1965,9 +1866,8 @@
                             </div>
                         </div>
                     `;
-                } else if(isRule6Format){
-                    middleColumn.innerHTML = `
-                        <div class="expandable-section">
+      } else if (isRule6Format) {
+        middleColumn.innerHTML = ` <div class="expandable-section">
                             <div class="section-header">
                                 <div class="header-left">
                                     <span class="dot linked"></span>
@@ -2001,7 +1901,7 @@
                                 </div>
 
                             </div>
-                            <div class="section-content" style="max-height: 178px; opacity: 1; padding: 6px 26px; margin-bottom: 26px;">
+                <div class="section-content" style="max-height: 178px; opacity: 1; padding: 6px 20px;">
                                 <div class="unlinked-content">
                                     <div class="content-row">
                                         <span>Active Pension Amount</span>
@@ -2015,9 +1915,8 @@
                             </div>
                         </div>
                     `;
-                } else if(isRule7Format){
-                        middleColumn.innerHTML = `
-                            <div class="expandable-section">
+      } else if (isRule7Format) {
+        middleColumn.innerHTML = ` <div class="expandable-section">
                                 <div class="section-header">
                                     <div class="header-left">
                                         <span class="dot linked"></span>
@@ -2048,7 +1947,7 @@
                                     </div>
 
                                 </div>
-                                <div class="section-content" style="max-height: 178px; opacity: 1; padding: 6px 26px; margin-bottom: 26px;">
+                <div class="section-content" style="max-height: 178px; opacity: 1; padding: 6px 20px; ">
                                     <div class="unlinked-content">
                                         <div class="content-row">
                                             <span>Enhance Family Pension Count</span>
@@ -2065,7 +1964,6 @@
                         `;
                 }
                 else {
-                    // Existing Rule 2 content
                     middleColumn.innerHTML = `
                         <div class="expandable-section">
                             <div class="section-header">
@@ -2097,7 +1995,7 @@
                                 </div>
 
                             </div>
-                            <div class="section-content" style="max-height: 178px; opacity: 1; padding: 6px 26px; margin-bottom: 26px;">
+                <div class="section-content" style="max-height: 178px; opacity: 1; padding: 6px 20px;">
                                 <div class="unlinked-content">
                                     <!-- Age-wise data will be dynamically inserted here -->
                                 </div>
@@ -2473,10 +2371,6 @@
                 } else if (ruleTitle.toLowerCase().includes("new pensioners")) {
                   ruleData = rulesData.pension_revision;
                 }
-
-                // Add initial bot message with the selected rule info
-
-                // Close the rules section after selection
                 rulesSection.classList.remove("open");
               });
             });
@@ -2517,13 +2411,9 @@
             // Function to add a message to the chat
             function addMessage(text, isBot = false) {
               const messageDiv = document.createElement("div");
-              messageDiv.className = `message ${
-                isBot ? "bot-message" : "user-message"
-              }`;
-
+        messageDiv.className = `message ${isBot ? "bot-message" : "user-message" }`;
               const messageContent = document.createElement("div");
               messageContent.className = "message-content";
-
               const textP = document.createElement("p");
               textP.textContent = text;
 
@@ -2584,57 +2474,17 @@
               
               const monthDropdown = document.getElementById("dateSelector");
               const selectedMonth = monthDropdown ? monthDropdown.value : "9";
-
-              // Use the existing handleRuleSelection function with ruleId and month
-             
               await handleRuleSelection(ruleId, monthList);
             } catch (error) {
               console.error("Error in rule/function selection:", error);
             }
           }
 
-          // Function to initialize notification item click handlers
-          {% comment %} function initializeNotificationHandlers() {
-              console.log("Notification handlers initialized.");
-              const notificationItems = document.querySelectorAll('.notification-item');
-
-              // Map of text content to rule IDs
-              const ruleIdMap = {
-                  'Overall underpayment/overpayment': '1',
-                  'Age Metrics': '2',
-                  'Family Pension Conversion': '3',
-                  'Pay commission revisions': '4'
-              };
-
-                  notificationItems.forEach(item => {
-                      item.addEventListener('click', () => {
-                          // Remove active class from all items
-                          notificationItems.forEach(i => i.classList.remove('active'));
-
-                          // Add active class to clicked item
-                          item.classList.add('active');
-
-                          // Get the rule name from the header span
-                          const headerSpan = item.querySelector('.notification-header span:first-child');
-                          const ruleName = headerSpan.textContent.trim();
-
-                          // Get the corresponding rule ID
-                          const ruleId = ruleIdMap[ruleName];
-                          if (ruleId) {
-                              handleRuleOrFunctionSelect(ruleId);
-                          }
-                          else{
-                              console.log(1)
-                          }
-                      });
-                  });
-          } {% endcomment %}
           function handleClick(event) {
             const item = event.currentTarget; // Get the clicked item
             notificationItems.forEach((i) => i.classList.remove("active"));
             item.classList.add("active");
-          
-            const headerSpan = item.querySelector(".notification-header span:first-child");
+      const headerSpan = item.querySelector(".notification-header span");
             const ruleName = headerSpan ? headerSpan.textContent.trim() : "";
             
             const ruleId = ruleIdMap[ruleName] || "1";
@@ -2660,7 +2510,7 @@
             function getRuleIdFromActiveItem() {
               const activeItem = document.querySelector(".notification-item.active");
               if (activeItem) {
-                const headerSpan = activeItem.querySelector(".notification-header span:first-child");
+          const headerSpan = activeItem.querySelector(".notification-header span");
                 const ruleName = headerSpan ? headerSpan.textContent.trim() : "";
                 return ruleIdMap[ruleName] || "1";
               }
@@ -2673,8 +2523,7 @@
               notificationItems.forEach((i) => i.classList.remove("active"));
           
               item.classList.add("active");
-          
-              const headerSpan = item.querySelector(".notification-header span:first-child");
+        const headerSpan = item.querySelector(".notification-header span");
               const ruleName = headerSpan ? headerSpan.textContent.trim() : "";
           
               const ruleId = ruleIdMap[ruleName] || "1";
@@ -2687,7 +2536,7 @@
             notificationItems.forEach((item) => {
               if (!item.dataset.listenerAdded) {
                 item.addEventListener("click", handleClick);
-                item.dataset.listenerAdded = "true"; 
+                item.dataset.listenerAdded = "true"; // Mark it to prevent duplicates
               }
             });
           
@@ -2706,8 +2555,7 @@
             if (!chatMessages) return;
 
             const messageDiv = document.createElement("div");
-            messageDiv.className = `message ${
-              isBot ? "bot-message" : "user-message"
+      messageDiv.className = `message ${isBot ? "bot-message" : "user-message"
             }`;
 
             const messageContent = document.createElement("div");
@@ -2737,8 +2585,7 @@
 
             // Create message container
             const messageDiv = document.createElement("div");
-            messageDiv.className = `message ${
-              isBot ? "bot-message" : "user-message"
+            messageDiv.className = `message ${isBot ? "bot-message" : "user-message"
             }`;
 
             // Create message content container
@@ -3037,6 +2884,7 @@
         const pieCtx = resetCanvas(pieCanvas);
 
         if (rule === "1") { 
+           document.getElementById("chart_container").style.display = "none";
             Object.keys(response).forEach(month => {
                 if (!isNaN(month)) { 
                     Object.keys(response[month]).forEach(metric => {
@@ -3123,6 +2971,7 @@
             });
         } 
         else if (rule == 2) { 
+          document.getElementById("chart_container").style.display = "none";
             window.lineChart = new Chart(lineCtx, {
                 type: 'line',
                 data: {
@@ -3171,6 +3020,7 @@
             });
         }
         else if (rule == 3) {
+          document.getElementById("chart_container").style.display = "none";
           Object.keys(response).forEach(month => {
               if (!isNaN(month)) {
                   Object.keys(response[month]).forEach(metric => {
@@ -3216,7 +3066,7 @@
               tension: 0.2
           }));
       
-          if (window.pieChart) window.pieChart.destroy();
+        //  if (window.pieChart) window.pieChart.destroy();
           window.pieChart = new Chart(pieCtx, {
               type: 'line',
               data: { labels: monthLabels, datasets: lineDatasetsCount },
@@ -3242,7 +3092,7 @@
               tension: 0.2
           }));
       
-          if (window.lineChart) window.lineChart.destroy();
+          //if (window.lineChart) window.lineChart.destroy();
           window.lineChart = new Chart(lineCtx, {
               type: 'line',
               data: { labels: monthLabels, datasets: lineDatasets },
@@ -3263,6 +3113,7 @@
           console.log(lineDatasets, "lineDatasets");
       }
       else if (rule == 6) {
+        document.getElementById("chart_container").style.display = "none";
         Object.keys(response).forEach(month => {
             if (!isNaN(month)) {
                 Object.keys(response[month]).forEach(metric => {
@@ -3315,7 +3166,7 @@
               tension: 0.2
           }));
     
-        if (window.pieChart) window.pieChart.destroy();
+       // if (window.pieChart) window.pieChart.destroy();
         window.pieChart = new Chart(pieCtx, {
             type: 'line',
             data: { labels: monthLabels, datasets: lineDatasetsCount },
@@ -3342,7 +3193,7 @@
             tension: 0.2
         }));
     
-        if (window.lineChart) window.lineChart.destroy();
+       // if (window.lineChart) window.lineChart.destroy();
         window.lineChart = new Chart(lineCtx, {
             type: 'line',
             data: { labels: monthLabels, datasets: lineDatasets },
@@ -3755,16 +3606,14 @@ function updateCompMiddle(response, rule) {
 
   
 function updateCompRule(rule) {
-    if(rule ==1){
+      if (rule == 1) {
         const middleColumn = document.getElementById('middleColumn');
         if (!middleColumn) return;
-
         const ruleData = window.currentResponse?.data?.rule_data || {};
 
         middleColumn.innerHTML = ''; 
 
-        let content = `
-            <div class="expandable-section">
+        let content = ` <div class="expandable-section">
                 <div class="section-header">
                     <div class="header-left">
                         <span class="dot linked"></span>
@@ -3795,7 +3644,7 @@ function updateCompRule(rule) {
                         <h2>Payment Analysis</h2>
                     </div>
                 </div>
-                <div class="section-content" style="max-height: 178px; opacity: 1; padding: 6px 26px; margin-bottom: 26px;">
+                <div class="section-content" style="max-height: 178px; opacity: 1; padding: 6px 20px;">
                     <div class="unlinked-content">
                         <div class="content-row">
                             <span>Overpayment Cases</span>
@@ -3853,7 +3702,7 @@ function updateCompRule(rule) {
                                   </div>
 
                               </div>
-                              <div class="section-content" style="max-height: 178px; opacity: 1; padding: 6px 26px; margin-bottom: 26px;">
+                <div class="section-content" style="max-height: 178px; opacity: 1; padding: 6px 20px;">
                                   <div class="unlinked-content">
                                       <!-- Age-wise data will be dynamically inserted here -->
                                   </div>
@@ -4050,8 +3899,97 @@ function createLineChart(canvasId, labels, data1, data2, label1 = 'Dataset 1', l
               fromMonth.value = toMonth.value;
           }
       });
-
+      const nwrSelectWrapper = document.querySelector('.nwr-select-wrapper');
+      const nwrSelectBtn = document.querySelector('.nwr-select-btn');
+      const nwrSelectedText = document.querySelector('.nwr-selected-text');
+      const nwrDropdown = document.querySelector('.nwr-select-dropdown');
+      const options = document.querySelectorAll('.nwr-select-option');
   
+      // Toggle dropdown
+      nwrSelectBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        nwrSelectBtn.classList.toggle('active');
+        nwrDropdown.classList.toggle('show');
+      });
+  
+      // Close dropdown when clicking outside
+      document.addEventListener('click', function (e) {
+        if (!nwrSelectWrapper.contains(e.target)) {
+          nwrSelectBtn.classList.remove('active');
+          nwrDropdown.classList.remove('show');
+        }
+      });
+  
+      options.forEach(option => {
+        option.addEventListener('click', function () {
+          const value = this.getAttribute('data-value');
+          const text = this.textContent.trim();
+  
+          // Update selected text
+          nwrSelectedText.textContent = text;
+  
+          // Update selected state
+          options.forEach(item => {
+            item.classList.remove('selected');
+            item.classList.remove('active');
+          });
+          this.classList.add('selected');
+          this.classList.add('active');
+  
+          // Close dropdown
+          nwrSelectBtn.classList.remove('active');
+          nwrDropdown.classList.remove('show');
+  
+          // Trigger change event
+          const event = new CustomEvent('change', {
+            detail: { value, text }
+          });
+          nwrSelectWrapper.dispatchEvent(event);
+        });
+      });
+  
+  
+  
+      // Keyboard navigation
+      nwrSelectBtn.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          nwrSelectBtn.click();
+      }
+    });
+
+    nwrDropdown.addEventListener('keydown', function (e) {
+      const selectedOption = document.querySelector('.nwr-select-option.selected');
+      const visibleOptions = Array.from(options);
+      const currentIndex = visibleOptions.indexOf(selectedOption);
+
+      switch (e.key) {
+        case 'ArrowDown':
+          e.preventDefault();
+          if (currentIndex < visibleOptions.length - 1) {
+            visibleOptions[currentIndex + 1].click();
+          }
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          if (currentIndex > 0) {
+            visibleOptions[currentIndex - 1].click();
+          }
+          break;
+        case 'Enter':
+        case ' ':
+          e.preventDefault();
+          if (selectedOption) {
+            selectedOption.click();
+          }
+          break;
+        case 'Escape':
+          e.preventDefault();
+          nwrSelectBtn.classList.remove('active');
+          nwrDropdown.classList.remove('show');
+          break;
+      }
+    });
     </script>
   </body>
 </html>
